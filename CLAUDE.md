@@ -260,7 +260,11 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   from article, plural article, adjective forms) and duplicate warnings; verbs are edited in step 5.
   Writes return immediately (offline-friendly); server rejections surface as notifications. PWA messages
   are notifications at the top so they never cover the add or save buttons.
-- Next step: 5 (Conjugations).
+- Step 5 (Conjugations): **done** (2026-10-04). Conjugation page per verb and language
+  (`/entries/:id/conjugation/:lang/:index`), native tense names with the French equivalent, pronouns added
+  at display (French "j'" elision). Verbs are editable: one collapsible section per tense, sections with
+  errors reopen on save. No regular-verb generator (owner's choice: the AI of step 6 fills conjugations).
+- Next step: 6 (AI).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
