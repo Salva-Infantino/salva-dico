@@ -41,7 +41,7 @@ async function fillExpression(values: Record<string, string>) {
 
 describe('EntryEditorPage — new entry', () => {
   it('starts from the language and word given in the URL', () => {
-    renderWithEntries(entries, '/entries/new?lang=it&text=ragazzino');
+    renderWithEntries(entries, '/entries/new?lang=it&text=ragazzino&mode=manual');
     const word = within(section('Italien')).getByRole('textbox', { name: fr.editor.fields.word });
     expect(word).toHaveValue('ragazzino');
     expect(word).toHaveFocus();
@@ -55,7 +55,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('derives the gender and plural article from the article (lo → m., gli)', async () => {
-    renderWithEntries(entries, '/entries/new?lang=it');
+    renderWithEntries(entries, '/entries/new?lang=it&mode=manual');
     const italian = within(section('Italien'));
     await userEvent.selectOptions(
       italian.getByRole('combobox', { name: fr.editor.fields.article }),
@@ -68,7 +68,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('pre-fills the other adjective forms', async () => {
-    renderWithEntries(entries, '/entries/new');
+    renderWithEntries(entries, '/entries/new?mode=manual');
     await userEvent.click(screen.getByRole('radio', { name: fr.entryTypes.adjective }));
     const spanish = within(section('Espagnol'));
     await userEvent.type(
@@ -81,7 +81,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('shows errors next to the fields and focuses the first one', async () => {
-    const { actions } = renderWithEntries(entries, '/entries/new');
+    const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
     await save();
 
     expect(screen.getByRole('alert')).toHaveTextContent(fr.editor.errors.summary);
@@ -101,7 +101,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('saves a valid entry and opens it', async () => {
-    const { actions } = renderWithEntries(entries, '/entries/new');
+    const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
     await fillExpression({
       Français: 'à bientôt',
       Anglais: 'see you soon',
@@ -124,7 +124,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('can add and remove translations in a language', async () => {
-    const { actions } = renderWithEntries(entries, '/entries/new');
+    const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
     await fillExpression({ Français: 'salut', Anglais: 'hi', Espagnol: 'hola', Italien: 'ciao' });
     await userEvent.click(
       within(section('Anglais')).getByRole('button', { name: fr.editor.addTranslation }),
@@ -147,7 +147,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('warns about a duplicate and asks before saving it', async () => {
-    const { actions } = renderWithEntries(entries, '/entries/new');
+    const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
     await fillExpression({ Français: 'le Garçon', Anglais: 'x', Espagnol: 'x', Italien: 'x' });
 
     await within(section('Français')).findByText(/existe déjà en français/);
@@ -180,7 +180,7 @@ describe('EntryEditorPage — new entry', () => {
         { id: 'waiter' },
       ),
     ];
-    renderWithEntries(twins, '/entries/new');
+    renderWithEntries(twins, '/entries/new?mode=manual');
     await fillExpression({ Français: 'garçon' });
 
     const french = section('Français');
@@ -193,7 +193,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('asks before leaving with unsaved changes', async () => {
-    renderWithEntries(entries, '/entries/new');
+    renderWithEntries(entries, '/entries/new?mode=manual');
     await userEvent.type(
       within(section('Français')).getByRole('textbox', { name: fr.editor.fields.word }),
       'chien',
@@ -202,7 +202,7 @@ describe('EntryEditorPage — new entry', () => {
 
     const dialog = screen.getByRole('dialog', { name: fr.editor.leaveTitle });
     await userEvent.click(within(dialog).getByRole('button', { name: fr.editor.stay }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/entries/new');
+    expect(screen.getByTestId('location')).toHaveTextContent('/entries/new?mode=manual');
 
     await userEvent.click(screen.getByRole('button', { name: fr.editor.cancel }));
     await userEvent.click(
@@ -214,7 +214,7 @@ describe('EntryEditorPage — new entry', () => {
   });
 
   it('leaves without asking when nothing changed', async () => {
-    renderWithEntries(entries, '/entries/new');
+    renderWithEntries(entries, '/entries/new?mode=manual');
     await userEvent.click(screen.getByRole('button', { name: fr.editor.cancel }));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByTestId('location')).toHaveTextContent(/^\/$/);

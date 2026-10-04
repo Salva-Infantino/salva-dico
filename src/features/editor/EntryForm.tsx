@@ -1,9 +1,8 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
-import { Link, useBlocker } from 'react-router';
+import { useBlocker } from 'react-router';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
 import { Flag } from '../../components/Flag.tsx';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
-import { headwords } from '../../domain/forms.ts';
 import { LANGS, type Lang } from '../../domain/languages.ts';
 import type { Entry, EntryContent } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -16,6 +15,7 @@ import {
   type TranslationDraft,
 } from './entryDraft.ts';
 import { withAdjectiveHints, withNounHints } from './grammarHints.ts';
+import { DuplicateWarning } from './DuplicateWarning.tsx';
 import { TranslationFields } from './TranslationFields.tsx';
 
 interface EntryFormProps {
@@ -26,6 +26,8 @@ interface EntryFormProps {
   entries: readonly Entry[];
   /** The entry being edited, never reported as its own duplicate. */
   entryId?: string;
+  /** Content not saved yet (AI result): leaving always asks for confirmation. */
+  startDirty?: boolean;
   onSave: (content: EntryContent) => void;
   onCancel: () => void;
 }
@@ -35,6 +37,7 @@ export function EntryForm({
   startLang,
   entries,
   entryId,
+  startDirty = false,
   onSave,
   onCancel,
 }: EntryFormProps) {
@@ -56,7 +59,7 @@ export function EntryForm({
     findDuplicates(lang, row.text, entryId === undefined ? {} : { excludeId: entryId });
 
   // --- Unsaved changes -------------------------------------------------------
-  const dirty = draftSignature(draft) !== draftSignature(initialDraft);
+  const dirty = startDirty || draftSignature(draft) !== draftSignature(initialDraft);
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       dirty && !saving.current && currentLocation.pathname !== nextLocation.pathname,
@@ -186,23 +189,7 @@ export function EntryForm({
                       updateRow(lang, index, patch);
                     }}
                   />
-                  {found.length > 0 && (
-                    <div className="warning">
-                      <p>{fr.editor.duplicate(row.text.trim(), fr.langs[lang])}</p>
-                      <ul>
-                        {found.map((entry) => (
-                          <li key={entry.id}>
-                            <Link to={`/entries/${entry.id}`}>
-                              {fr.editor.openExisting(
-                                headwords(entry, 'fr').join(', '),
-                                fr.entryTypes[entry.type],
-                              )}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  <DuplicateWarning word={row.text} lang={lang} entries={found} />
                   {rows.length > 1 && (
                     <button
                       type="button"

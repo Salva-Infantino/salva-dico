@@ -11,7 +11,7 @@ import {
   sVousPlaitContent,
 } from '../../test/fixtures.ts';
 import {
-  draftFromEntry,
+  draftFromContent,
   draftSignature,
   emptyDraft,
   emptyTranslation,
@@ -20,7 +20,7 @@ import {
 } from './entryDraft.ts';
 
 function draftOf(content: EntryContent): EntryDraft {
-  return draftFromEntry(makeEntry(content));
+  return draftFromContent(makeEntry(content));
 }
 
 /** A complete, valid expression draft. */
@@ -41,7 +41,7 @@ describe('emptyDraft', () => {
   });
 });
 
-describe('draftFromEntry → validateDraft round trip', () => {
+describe('draftFromContent → validateDraft round trip', () => {
   it.each([
     ['noun', arbreContent],
     ['noun with irregular EN plural', sourisContent],

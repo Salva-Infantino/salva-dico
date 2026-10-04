@@ -11,6 +11,7 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
   const search = page.getByRole('searchbox', { name: 'Rechercher' });
   await search.fill(word);
   await page.getByRole('link', { name: `Ajouter « ${word} »` }).click();
+  await page.getByRole('button', { name: 'Manuel' }).click();
 
   await page.getByRole('radio', { name: 'Expression' }).click();
   const field = (lang: string) =>
@@ -56,6 +57,7 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
 test('warns about a duplicate while typing', async ({ page }) => {
   await signIn(page);
   await page.getByRole('link', { name: 'Ajouter une entrée' }).click();
+  await page.getByRole('button', { name: 'Manuel' }).click();
   await page.getByRole('radio', { name: 'Expression' }).click();
   await page
     .getByRole('group', { name: 'Français' })

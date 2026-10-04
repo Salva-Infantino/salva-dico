@@ -61,6 +61,35 @@ export const fr = {
     deleteTitle: 'Supprimer cette entrée ?',
     deleteText: 'Elle sera supprimée sur tous tes appareils.',
   },
+  ai: {
+    modes: { ai: 'Avec l’IA', manual: 'Manuel' },
+    modeLabel: 'Mode de saisie',
+    lang: 'Langue du mot',
+    word: 'Mot ou expression',
+    type: 'Type',
+    autoType: 'Détection automatique',
+    submit: 'Traduire avec l’IA',
+    loading: 'Traduction en cours…',
+    cancel: 'Annuler',
+    offline: 'L’IA n’est pas disponible hors ligne. Tu peux ajouter l’entrée manuellement.',
+    translateAnyway: 'Traduire quand même',
+    reviewTitle: 'Vérifie la traduction',
+    reviewHint:
+      'Rien n’est enregistré tant que tu n’as pas validé. Tous les champs sont modifiables.',
+    backToRequest: 'Recommencer',
+    errors: {
+      network: 'Connexion impossible. Vérifie ta connexion et réessaie.',
+      quota:
+        'Le quota gratuit de l’IA est atteint. Réessaie plus tard, ou ajoute l’entrée manuellement.',
+      timeout: 'L’IA a mis trop de temps à répondre. Réessaie.',
+      invalid_output:
+        'La réponse de l’IA est incomplète. Réessaie, ou ajoute l’entrée manuellement.',
+      ai_unavailable: 'L’IA est indisponible pour le moment. Réessaie plus tard.',
+      unauthorized: 'Ta session a expiré. Recharge l’application et reconnecte-toi.',
+      forbidden: 'Ce compte n’est pas autorisé à utiliser l’IA.',
+      bad_request: 'Le mot saisi est invalide (100 caractères maximum).',
+    },
+  },
   editor: {
     newTitle: 'Nouvelle entrée',
     editTitle: "Modifier l'entrée",

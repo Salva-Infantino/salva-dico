@@ -7,6 +7,7 @@ import { UpdatePrompt } from './components/UpdatePrompt.tsx';
 import { useEntries } from './data/EntriesContext.ts';
 import { EntriesProvider } from './data/EntriesProvider.tsx';
 import { EntryActionsProvider } from './data/EntryActionsProvider.tsx';
+import { TranslatorProvider } from './data/TranslatorProvider.tsx';
 import { LoadingScreen } from './pages/LoadingScreen.tsx';
 
 /** Root layout of the data router: auth gate, initial sync, then the current page. */
@@ -30,7 +31,9 @@ function AuthGate() {
       return (
         <EntriesProvider uid={state.user.uid}>
           <EntryActionsProvider uid={state.user.uid}>
-            <SignedInApp user={state.user} />
+            <TranslatorProvider>
+              <SignedInApp user={state.user} />
+            </TranslatorProvider>
           </EntryActionsProvider>
         </EntriesProvider>
       );
