@@ -4,6 +4,7 @@ import type { EntryContent } from '../../domain/schemas.ts';
 import {
   allerContent,
   arbreContent,
+  seLeverContent,
   grandContent,
   makeEntry,
   sourisContent,
@@ -18,11 +19,8 @@ import {
   type EntryDraft,
 } from './entryDraft.ts';
 
-/** Draft of a fixture entry; fails the test for non-editable (verb) entries. */
 function draftOf(content: EntryContent): EntryDraft {
-  const draft = draftFromEntry(makeEntry(content));
-  if (!draft) throw new Error('Entry is not editable');
-  return draft;
+  return draftFromEntry(makeEntry(content));
 }
 
 /** A complete, valid expression draft. */
@@ -66,8 +64,11 @@ describe('draftFromEntry → validateDraft round trip', () => {
     expect(validateDraft(draft)).toEqual({ ok: true, content });
   });
 
-  it('refuses verbs (edited with the conjugation form)', () => {
-    expect(draftFromEntry(makeEntry(allerContent))).toBeNull();
+  it.each([
+    ['verb', allerContent],
+    ['reflexive verb', seLeverContent],
+  ] as const)('keeps a %s with its full conjugation unchanged', (_label, content) => {
+    expect(validateDraft(draftOf(content))).toEqual({ ok: true, content });
   });
 });
 
@@ -123,6 +124,60 @@ describe('validateDraft', () => {
     const result = validateDraft({ ...draft, type: 'noun' });
     expect(!result.ok && result.errors['fr.0.article']).toBe('required');
     expect(draft.translations.fr[0]?.text).toBe("s'il vous plaît");
+  });
+});
+
+describe('validateDraft — verbs', () => {
+  it('maps conjugation errors to each cell, the auxiliary and the imperative', () => {
+    const draft = draftOf(allerContent);
+    const [it] = draft.translations.it;
+    if (!it) throw new Error('missing row');
+    const presente = [...(it.tenses['presente'] ?? [])];
+    presente[3] = ' ';
+    draft.translations.it = [
+      {
+        ...it,
+        auxiliary: '',
+        tenses: { ...it.tenses, presente },
+        imperativeNegative: ['non andare', '', 'non andate'],
+      },
+    ];
+    const result = validateDraft(draft);
+    expect(!result.ok && result.errors).toEqual({
+      'it.0.conjugation.auxiliary': 'auxiliary',
+      'it.0.conjugation.presente.3': 'required',
+      'it.0.conjugation.imperativo.negative.1': 'required',
+    });
+  });
+
+  it('requires the English past forms and uses the infinitive as base form', () => {
+    const draft = draftOf(allerContent);
+    const [en] = draft.translations.en;
+    if (!en) throw new Error('missing row');
+    draft.translations.en = [{ ...en, text: 'walk', pastSimple: '', pastParticiple: 'walked' }];
+    const result = validateDraft(draft);
+    expect(!result.ok && result.errors).toEqual({ 'en.0.conjugation.pastSimple': 'required' });
+
+    draft.translations.en = [{ ...en, text: 'walk', pastSimple: 'walked', irregular: false }];
+    const valid = validateDraft(draft);
+    expect(valid.ok && valid.content.type === 'verb' && valid.content.translations.en).toEqual([
+      {
+        text: 'walk',
+        conjugation: {
+          base: 'walk',
+          pastSimple: 'walked',
+          pastParticiple: 'gone',
+          irregular: false,
+        },
+      },
+    ]);
+  });
+
+  it('starts a new verb with empty cells to fill', () => {
+    const draft = emptyDraft({ type: 'verb', lang: 'es', text: 'hablar' });
+    const result = validateDraft(draft);
+    expect(!result.ok && result.errors['es.0.conjugation.presente.0']).toBe('required');
+    expect(!result.ok && result.errors['fr']).toBe('missingLanguage');
   });
 });
 

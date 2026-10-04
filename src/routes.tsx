@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router';
 import { App } from './App.tsx';
+import { ConjugationPage } from './features/conjugation/ConjugationPage.tsx';
 import { DictionaryPage } from './features/dictionary/DictionaryPage.tsx';
 import { EntryEditorPage } from './features/editor/EntryEditorPage.tsx';
 import { EntryDetailPage } from './features/entry/EntryDetailPage.tsx';
@@ -12,6 +13,7 @@ export const pageRoutes: RouteObject[] = [
   { path: 'entries/new', element: <EntryEditorPage /> },
   { path: 'entries/:id', element: <EntryDetailPage /> },
   { path: 'entries/:id/edit', element: <EntryEditorPage /> },
+  { path: 'entries/:id/conjugation/:lang/:index', element: <ConjugationPage /> },
   { path: '*', element: <NotFoundPage /> },
 ];
 

@@ -71,9 +71,8 @@ function Editor({ id }: { id: string | undefined }) {
   if (initial.draft === null) {
     return (
       <main className="page">
-        <h1>{existing ? fr.editor.editTitle : fr.entry.notFound}</h1>
-        {existing && <p>{fr.entry.verbEditLater}</p>}
-        <Link to={existing ? `/entries/${existing.id}` : '/'}>{fr.entry.back}</Link>
+        <h1>{fr.entry.notFound}</h1>
+        <Link to="/">{fr.entry.back}</Link>
       </main>
     );
   }

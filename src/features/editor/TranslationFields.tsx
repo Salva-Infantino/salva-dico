@@ -1,5 +1,6 @@
 import type { Lang } from '../../domain/languages.ts';
 import { fr } from '../../i18n/fr.ts';
+import { ConjugationFields } from './ConjugationFields.tsx';
 import type { DraftErrors, EditableType, TranslationDraft } from './entryDraft.ts';
 import { SelectField, TextField } from './fields.tsx';
 import { PLURAL_ARTICLES, SINGULAR_ARTICLES } from './grammarHints.ts';
@@ -38,6 +39,12 @@ export function TranslationFields({
   );
 
   if (type === 'expression') return text('text', fr.editor.fields.expression);
+
+  if (type === 'verb') {
+    return (
+      <ConjugationFields lang={lang} row={row} index={index} errors={errors} onChange={onChange} />
+    );
+  }
 
   if (type === 'adjective') {
     if (lang === 'en') return text('text', fr.editor.fields.adjective);

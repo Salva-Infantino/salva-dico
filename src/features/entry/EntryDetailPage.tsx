@@ -63,13 +63,9 @@ export function EntryDetailPage() {
           <span className="switch-track" aria-hidden="true" />
           {fr.entry.mastered}
         </button>
-        {entry.type === 'verb' ? (
-          <p className="muted">{fr.entry.verbEditLater}</p>
-        ) : (
-          <Link className="button secondary" to={`/entries/${entry.id}/edit`}>
-            {fr.entry.edit}
-          </Link>
-        )}
+        <Link className="button secondary" to={`/entries/${entry.id}/edit`}>
+          {fr.entry.edit}
+        </Link>
         <button
           type="button"
           className="secondary danger-outline"

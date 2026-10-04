@@ -80,7 +80,15 @@ export function EntryForm({
 
   useEffect(() => {
     if (focusErrorRequest === 0) return;
-    form.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    // Open the collapsed tense sections that contain errors, then focus the first one.
+    const invalid = [
+      ...(form.current?.querySelectorAll<HTMLElement>('[aria-invalid="true"]') ?? []),
+    ];
+    for (const field of invalid) {
+      const section = field.closest('details');
+      if (section) section.open = true;
+    }
+    invalid[0]?.focus();
   }, [focusErrorRequest]);
 
   // --- Edits ---------------------------------------------------------------------

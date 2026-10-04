@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import { adjectiveForms, withArticle } from '../../domain/display.ts';
 import type { Lang } from '../../domain/languages.ts';
 import type { Entry } from '../../domain/schemas.ts';
@@ -66,9 +67,16 @@ function items(entry: Entry, lang: Lang) {
       });
 
     case 'verb':
+      // Each infinitive opens the conjugation of that language (never compared across languages).
       return entry.translations[lang].map((t, i) => (
         <li key={i}>
-          <span className="headword">{t.text}</span>
+          <Link
+            className="headword"
+            to={`/entries/${entry.id}/conjugation/${lang}/${String(i)}`}
+            aria-label={fr.conjugation.open(t.text)}
+          >
+            {t.text}
+          </Link>
           {'pastSimple' in t.conjugation && (
             <Details
               parts={[

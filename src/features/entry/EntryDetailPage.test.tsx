@@ -99,7 +99,7 @@ describe('EntryDetailPage actions', () => {
     expect(actions.setMastered).toHaveBeenCalledWith('arbre', false);
   });
 
-  it('links to the edit form, except for verbs (step 5)', () => {
+  it('links to the edit form', () => {
     renderWithEntries(entries, '/entries/arbre');
     expect(screen.getByRole('link', { name: fr.entry.edit })).toHaveAttribute(
       'href',
@@ -107,10 +107,17 @@ describe('EntryDetailPage actions', () => {
     );
   });
 
-  it('does not offer to edit verbs yet', () => {
+  it('links each infinitive to its own conjugation', () => {
     renderWithEntries(entries, '/entries/aller');
-    expect(screen.queryByRole('link', { name: fr.entry.edit })).not.toBeInTheDocument();
-    expect(screen.getByText(fr.entry.verbEditLater)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: fr.entry.edit })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: fr.conjugation.open('andare') })).toHaveAttribute(
+      'href',
+      '/entries/aller/conjugation/it/0',
+    );
+    expect(screen.getByRole('link', { name: fr.conjugation.open('go') })).toHaveAttribute(
+      'href',
+      '/entries/aller/conjugation/en/0',
+    );
   });
 
   it('deletes after confirmation and goes back', async () => {

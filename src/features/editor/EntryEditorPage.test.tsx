@@ -19,6 +19,14 @@ function nth<T>(items: readonly T[], index: number): T {
   return item;
 }
 
+/** The collapsible section of one tense (its fields stay in the DOM when collapsed). */
+function tenseSection(container: HTMLElement, name: RegExp | string): HTMLElement {
+  const summary = within(container).getByText(name);
+  const details = summary.closest('details');
+  if (!details) throw new Error('Tense section not found');
+  return details;
+}
+
 const section = (lang: string) => screen.getByRole('group', { name: lang });
 const save = () => userEvent.click(screen.getByRole('button', { name: fr.editor.save }));
 
@@ -233,10 +241,51 @@ describe('EntryEditorPage — existing entry', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/entries/arbre');
   });
 
-  it('does not edit verbs yet', () => {
+  it('edits one cell of a verb conjugation', async () => {
+    const { actions } = renderWithEntries(entries, '/entries/aller/edit');
+    const italian = within(section('Italien'));
+    expect(italian.getByRole('textbox', { name: fr.editor.fields.infinitive })).toHaveValue(
+      'andare',
+    );
+    expect(italian.getByRole('combobox', { name: fr.editor.fields.auxiliary })).toHaveValue(
+      'essere',
+    );
+
+    const presente = tenseSection(section('Italien'), 'Presente');
+    await userEvent.click(within(presente).getByText('Presente'));
+    const noi = within(presente).getByRole('textbox', { name: 'noi' });
+    expect(noi).toHaveValue('andiamo');
+    await userEvent.clear(noi);
+    await userEvent.type(noi, 'andiamo!');
+    await save();
+
+    const content = actions.update.mock.calls[0]?.[1];
+    expect(content?.type === 'verb' && content.translations.it[0]?.conjugation.presente).toEqual([
+      'vado',
+      'vai',
+      'va',
+      'andiamo!',
+      'andate',
+      'vanno',
+    ]);
+  });
+
+  it('opens the tense sections that contain errors and focuses the first one', async () => {
     renderWithEntries(entries, '/entries/aller/edit');
-    expect(screen.getByText(fr.entry.verbEditLater)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: fr.editor.save })).not.toBeInTheDocument();
+    const indefinido = tenseSection(section('Espagnol'), /Pretérito indefinido/);
+    const summary = within(indefinido).getByText(/Pretérito indefinido/);
+    await userEvent.click(summary);
+    await userEvent.clear(within(indefinido).getByRole('textbox', { name: 'nosotros' }));
+    // Collapse it again: saving must reopen it.
+    await userEvent.click(summary);
+    expect(indefinido).not.toHaveAttribute('open');
+    await save();
+
+    const cell = within(indefinido).getByRole('textbox', { name: 'nosotros' });
+    await waitFor(() => {
+      expect(cell).toHaveFocus();
+    });
+    expect(indefinido).toHaveAttribute('open');
   });
 
   it('handles an unknown entry', () => {

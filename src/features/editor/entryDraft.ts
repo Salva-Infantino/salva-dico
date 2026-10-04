@@ -1,9 +1,9 @@
-import { LANGS, type EntryType, type Lang } from '../../domain/languages.ts';
+import { IMPERATIVE, TENSES } from '../../domain/conjugation.ts';
+import { ENTRY_TYPES, LANGS, type EntryType, type Lang } from '../../domain/languages.ts';
 import { entryContentSchema, type Entry, type EntryContent } from '../../domain/schemas.ts';
 
-/** Verbs need the conjugation editor (step 5): not editable in this form yet. */
-export type EditableType = Exclude<EntryType, 'verb'>;
-export const EDITABLE_TYPES: readonly EditableType[] = ['noun', 'adjective', 'expression'];
+export type EditableType = EntryType;
+export const EDITABLE_TYPES: readonly EditableType[] = ENTRY_TYPES;
 
 /**
  * One translation being edited. Flat on purpose: switching the entry type keeps
@@ -21,6 +21,18 @@ export interface TranslationDraft {
   femSing: string;
   mascPlural: string;
   femPlural: string;
+  // Verbs (FR / ES / IT)
+  reflexive: boolean;
+  auxiliary: string;
+  /** Six-person tenses, by conjugation schema key (present, passatoProssimo…). */
+  tenses: Partial<Record<string, string[]>>;
+  /** Imperative 2sg, 1pl, 2pl. */
+  imperativeAffirmative: string[];
+  imperativeNegative: string[];
+  // Verbs (EN). The base form is the infinitive (`text`).
+  pastSimple: string;
+  pastParticiple: string;
+  irregular: boolean;
 }
 
 export interface EntryDraft {
@@ -30,7 +42,7 @@ export interface EntryDraft {
 
 /** Field-level errors, keyed by `lang` or `lang.index.field` (ex. "it.0.gender"). */
 export type DraftErrors = Partial<Record<string, ErrorCode>>;
-export type ErrorCode = 'required' | 'gender' | 'pluralArticle' | 'missingLanguage';
+export type ErrorCode = 'required' | 'gender' | 'auxiliary' | 'pluralArticle' | 'missingLanguage';
 
 let nextKey = 0;
 const newKey = () => `t${String(++nextKey)}`;
@@ -47,7 +59,20 @@ export function emptyTranslation(text = ''): TranslationDraft {
     femSing: '',
     mascPlural: '',
     femPlural: '',
+    reflexive: false,
+    auxiliary: '',
+    tenses: {},
+    imperativeAffirmative: [],
+    imperativeNegative: [],
+    pastSimple: '',
+    pastParticiple: '',
+    irregular: false,
   };
+}
+
+/** `count` cells, padded with empty strings. */
+export function cells(values: readonly string[] | undefined, count: number): string[] {
+  return Array.from({ length: count }, (_, i) => values?.[i] ?? '');
 }
 
 export function emptyDraft(
@@ -60,9 +85,8 @@ export function emptyDraft(
   return { type: options.type ?? 'noun', translations };
 }
 
-/** Draft of an existing entry, or null for verbs. */
-export function draftFromEntry(entry: Entry): EntryDraft | null {
-  if (entry.type === 'verb') return null;
+/** Draft of an existing entry. */
+export function draftFromEntry(entry: Entry): EntryDraft {
   const translations = {} as Record<Lang, TranslationDraft[]>;
   for (const lang of LANGS) {
     translations[lang] = (entry.translations[lang] as readonly Record<string, unknown>[]).map(
@@ -79,11 +103,37 @@ export function draftFromEntry(entry: Entry): EntryDraft | null {
         draft.femSing = str('femSing');
         draft.mascPlural = str('mascPlural');
         draft.femPlural = str('femPlural');
+        draft.reflexive = t['reflexive'] === true;
+        if (typeof t['conjugation'] === 'object' && t['conjugation'] !== null) {
+          Object.assign(draft, conjugationDraft(lang, t['conjugation'] as Record<string, unknown>));
+        }
         return draft;
       },
     );
   }
   return { type: entry.type, translations };
+}
+
+function conjugationDraft(lang: Lang, conjugation: Record<string, unknown>) {
+  const strings = (value: unknown) =>
+    Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+  if (lang === 'en') {
+    return {
+      pastSimple: typeof conjugation['pastSimple'] === 'string' ? conjugation['pastSimple'] : '',
+      pastParticiple:
+        typeof conjugation['pastParticiple'] === 'string' ? conjugation['pastParticiple'] : '',
+      irregular: conjugation['irregular'] === true,
+    };
+  }
+  const tenses: Partial<Record<string, string[]>> = {};
+  for (const tense of TENSES[lang]) tenses[tense.key] = strings(conjugation[tense.key]);
+  const imperative = (conjugation[IMPERATIVE[lang].key] ?? {}) as Record<string, unknown>;
+  return {
+    auxiliary: typeof conjugation['auxiliary'] === 'string' ? conjugation['auxiliary'] : '',
+    tenses,
+    imperativeAffirmative: strings(imperative['affirmative']),
+    imperativeNegative: strings(imperative['negative']),
+  };
 }
 
 const isEnglish = (lang: Lang) => lang === 'en';
@@ -99,6 +149,15 @@ function relevantValues(t: TranslationDraft, type: EditableType, lang: Lang): st
         : [t.text, t.article, ...(t.hasPlural ? [t.plural, t.pluralArticle] : [])];
     case 'adjective':
       return isEnglish(lang) ? [t.text] : [t.text, t.femSing, t.mascPlural, t.femPlural];
+    case 'verb':
+      if (isEnglish(lang)) return [t.text, t.pastSimple, t.pastParticiple];
+      return [
+        t.text,
+        t.auxiliary,
+        ...TENSES[lang].flatMap((tense) => cells(t.tenses[tense.key], 6)),
+        ...t.imperativeAffirmative,
+        ...t.imperativeNegative,
+      ];
   }
 }
 
@@ -129,7 +188,31 @@ function translationContent(t: TranslationDraft, type: EditableType, lang: Lang)
             mascPlural: t.mascPlural,
             femPlural: t.femPlural,
           };
+    case 'verb':
+      return verbContent(t, lang);
   }
+}
+
+function verbContent(t: TranslationDraft, lang: Lang) {
+  if (isEnglish(lang)) {
+    return {
+      text: t.text,
+      conjugation: {
+        base: t.text,
+        pastSimple: t.pastSimple,
+        pastParticiple: t.pastParticiple,
+        irregular: t.irregular,
+      },
+    };
+  }
+  const conjugation: Record<string, unknown> = {};
+  if (lang !== 'es') conjugation['auxiliary'] = t.auxiliary || undefined;
+  for (const tense of TENSES[lang]) conjugation[tense.key] = cells(t.tenses[tense.key], 6);
+  conjugation[IMPERATIVE[lang].key] = {
+    affirmative: cells(t.imperativeAffirmative, 3),
+    negative: cells(t.imperativeNegative, 3),
+  };
+  return { text: t.text, ...(t.reflexive ? { reflexive: true } : {}), conjugation };
 }
 
 /** Rows kept per language (blank rows are dropped), with their index in the draft. */
@@ -164,7 +247,7 @@ export function validateDraft(draft: EntryDraft): DraftValidation {
 
   const errors: DraftErrors = {};
   for (const issue of result.error.issues) {
-    const [, lang, row, field] = issue.path;
+    const [, lang, row, ...rest] = issue.path;
     if (typeof lang !== 'string' || !(LANGS as readonly string[]).includes(lang)) continue;
     if (row === undefined) {
       errors[lang] = 'missingLanguage';
@@ -172,10 +255,25 @@ export function validateDraft(draft: EntryDraft): DraftValidation {
     }
     const draftIndex = keptRows(draft, lang as Lang)[Number(row)]?.index;
     if (draftIndex === undefined) continue;
-    const draftField = field === 'mascSing' ? 'text' : String(field ?? 'text');
+    const draftField = toDraftField(rest.map(String).join('.'));
     const code: ErrorCode =
-      draftField === 'gender' ? 'gender' : issue.code === 'custom' ? 'pluralArticle' : 'required';
+      draftField === 'gender'
+        ? 'gender'
+        : draftField === 'conjugation.auxiliary'
+          ? 'auxiliary'
+          : issue.code === 'custom'
+            ? 'pluralArticle'
+            : 'required';
     errors[`${lang}.${String(draftIndex)}.${draftField}`] ??= code;
   }
   return { ok: false, errors };
+}
+
+/**
+ * Draft field name of a schema path (after the translation index): the masculine
+ * singular and the English base form are edited in the main field.
+ */
+function toDraftField(path: string): string {
+  if (path === '' || path === 'mascSing' || path === 'conjugation.base') return 'text';
+  return path;
 }

@@ -657,6 +657,129 @@ button.switch[aria-checked='true'] .switch-track::after {
   border-top: 1px solid var(--color-border);
 }
 
+/* --- Conjugation ------------------------------------------------------------------------ */
+
+.page.conjugation {
+  max-width: 64rem;
+}
+
+.conjugation-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.tense-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .tense-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .tense-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tense-card {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.tense-card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1rem;
+}
+
+.tense-forms {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.0625rem;
+}
+
+.imperative-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.0625rem;
+}
+
+.imperative-table th,
+.imperative-table td {
+  padding: var(--space-1) var(--space-2) var(--space-1) 0;
+  text-align: left;
+  vertical-align: top;
+}
+
+.imperative-table thead th {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.english-forms {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-4);
+  font-size: 1.125rem;
+}
+
+.english-forms dt {
+  color: var(--color-text-muted);
+}
+
+.english-forms dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* Verb editor: one collapsible section per tense. */
+.verb-fields {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tense-fields {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+}
+
+.tense-fields summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tense-fields summary.has-error {
+  color: var(--color-error);
+}
+
+.tense-fields[open] summary {
+  margin-bottom: var(--space-2);
+}
+
+.imperative-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+}
+
+.imperative-grid {
+  grid-template-columns: 1fr;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
