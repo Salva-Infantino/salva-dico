@@ -62,8 +62,8 @@ function syncUntil(
   });
 }
 
-function storedCursor(storage: CursorStorage) {
-  return parseCursor(storage.getItem(cursorStorageKey(PROJECT_ID, OWNER_UID)));
+function storedCursor(storage: CursorStorage, device: Firestore) {
+  return parseCursor(storage.getItem(cursorStorageKey(device.app.name, PROJECT_ID, OWNER_UID)));
 }
 
 beforeAll(async () => {
@@ -92,11 +92,12 @@ describe('entries sync (Firestore emulator)', () => {
     await Promise.all([a.committed, b.committed]);
 
     const storage = memoryStorage();
-    const entries = await syncUntil(newDevice(), storage, (e) => e.size === 2);
+    const reader = newDevice();
+    const entries = await syncUntil(reader, storage, (e) => e.size === 2);
 
     expect(entries.get(a.id)?.translations.fr[0]).toMatchObject({ text: 'garçon' });
     await vi.waitFor(() => {
-      expect(storedCursor(storage)).not.toBeNull();
+      expect(storedCursor(storage, reader)).not.toBeNull();
     });
   });
 
@@ -130,19 +131,19 @@ describe('entries sync (Firestore emulator)', () => {
     await first.committed;
     await syncUntil(device, storage, (e) => e.size === 1);
     await vi.waitFor(() => {
-      expect(storedCursor(storage)).not.toBeNull();
+      expect(storedCursor(storage, device)).not.toBeNull();
     });
-    const confirmedCursor = storedCursor(storage);
+    const confirmedCursor = storedCursor(storage, device);
 
     await disableNetwork(device);
     const offline = createEntry(device, OWNER_UID, arbreContent);
     await syncUntil(device, storage, (e) => e.has(offline.id));
-    expect(storedCursor(storage)).toEqual(confirmedCursor);
+    expect(storedCursor(storage, device)).toEqual(confirmedCursor);
 
     await enableNetwork(device);
     await offline.committed;
     await vi.waitFor(() => {
-      const cursor = storedCursor(storage);
+      const cursor = storedCursor(storage, device);
       expect(
         cursor && confirmedCursor && cursor.seconds * 1e9 + cursor.nanoseconds,
       ).toBeGreaterThan(
@@ -156,9 +157,10 @@ describe('entries sync (Firestore emulator)', () => {
     await createEntry(writer, OWNER_UID, garconContent).committed;
 
     const storage = memoryStorage();
+    const device = newDevice();
     // A cursor far in the future would hide every entry if it were trusted.
-    storage.setItem(cursorStorageKey(PROJECT_ID, OWNER_UID), '4102444800:0');
-    const entries = await syncUntil(newDevice(), storage, (e) => e.size === 1);
+    storage.setItem(cursorStorageKey(device.app.name, PROJECT_ID, OWNER_UID), '4102444800:0');
+    const entries = await syncUntil(device, storage, (e) => e.size === 1);
     expect(entries.size).toBe(1);
   });
 

@@ -11,6 +11,7 @@ const envSchema = z.object({
   VITE_FIREBASE_PROJECT_ID: z.string().min(1),
   VITE_FIREBASE_APP_ID: z.string().min(1),
   VITE_USE_EMULATORS: z.enum(['true', 'false']).optional(),
+  VITE_EMULATOR_RUN_ID: z.string().regex(/^\w+$/).optional(),
 });
 
 export interface FirebaseWebConfig {
@@ -24,6 +25,12 @@ export interface ClientEnv {
   firebase: FirebaseWebConfig;
   /** Connect to the local Firebase emulators instead of the real project. */
   useEmulators: boolean;
+  /**
+   * Firebase app name. Each emulator run starts from an empty database, so it gets its
+   * own name: the local cache (IndexedDB) and sync cursor are keyed by it, and data
+   * cached from a previous run can never show up as ghost entries.
+   */
+  appName: string;
 }
 
 export function parseClientEnv(env: Record<string, unknown>): ClientEnv {
@@ -41,5 +48,9 @@ export function parseClientEnv(env: Record<string, unknown>): ClientEnv {
       appId: vars.VITE_FIREBASE_APP_ID,
     },
     useEmulators: vars.VITE_USE_EMULATORS === 'true',
+    appName:
+      vars.VITE_USE_EMULATORS === 'true'
+        ? `emulator-${vars.VITE_EMULATOR_RUN_ID ?? 'default'}`
+        : '[DEFAULT]',
   };
 }

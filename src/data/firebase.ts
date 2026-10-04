@@ -25,8 +25,8 @@ let services: FirebaseServices | null = null;
 export function getFirebase(): FirebaseServices {
   if (services) return services;
 
-  const { firebase: config, useEmulators } = parseClientEnv(import.meta.env);
-  const app = initializeApp(config);
+  const { firebase: config, useEmulators, appName } = parseClientEnv(import.meta.env);
+  const app = initializeApp(config, appName);
   const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),

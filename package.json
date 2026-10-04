@@ -21,7 +21,7 @@
     "test:e2e": "firebase emulators:exec --only firestore,auth --project demo-salva-dico 'node scripts/seed-emulator.ts && playwright test'",
     "test:emulator": "firebase emulators:exec --only firestore --project demo-salva-dico 'vitest run --config vitest.emulator.config.ts'",
     "emulators": "firebase emulators:start --project demo-salva-dico",
-    "dev:emulators": "firebase emulators:exec --only firestore,auth --project demo-salva-dico --ui 'node scripts/seed-emulator.ts && vite --mode emulator'"
+    "dev:emulators": "firebase emulators:exec --only firestore,auth --project demo-salva-dico --ui 'node scripts/seed-emulator.ts && VITE_EMULATOR_RUN_ID=$(date +%s) vite --mode emulator'"
   },
   "dependencies": {
     "firebase": "^12.19.0",

@@ -19,7 +19,17 @@ describe('parseClientEnv', () => {
         appId: '1:2:web:3',
       },
       useEmulators: false,
+      appName: '[DEFAULT]',
     });
+  });
+
+  it('gives each emulator run its own app name (separate local cache)', () => {
+    const emulator = { ...env, VITE_USE_EMULATORS: 'true' };
+    expect(parseClientEnv({ ...emulator, VITE_EMULATOR_RUN_ID: '1759600000' }).appName).toBe(
+      'emulator-1759600000',
+    );
+    expect(parseClientEnv(emulator).appName).toBe('emulator-default');
+    expect(parseClientEnv({ ...env, VITE_EMULATOR_RUN_ID: '42' }).appName).toBe('[DEFAULT]');
   });
 
   it('enables the emulators only with VITE_USE_EMULATORS=true', () => {
