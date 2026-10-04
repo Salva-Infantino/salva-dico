@@ -32,11 +32,12 @@ test('edits one cell of a conjugation', async ({ page }, testInfo) => {
     .click();
   await page.getByRole('link', { name: 'Modifier' }).click();
 
+  // The summary must start with "Presente" ("Condizionale presente" also contains it).
   const presente = page
     .getByRole('group', { name: 'Italien' })
     .locator('details')
-    .filter({ hasText: 'Presente' });
-  await presente.getByText('Presente').click();
+    .filter({ has: page.locator('summary', { hasText: /^Presente/ }) });
+  await presente.locator('summary').click();
   const noi = presente.getByRole('textbox', { name: 'noi' });
   await expect(noi).toHaveValue('ci alziamo');
   await noi.fill('ci alziamo presto');
