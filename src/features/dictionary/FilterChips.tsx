@@ -1,14 +1,13 @@
 import { Flag } from '../../components/Flag.tsx';
 import { ENTRY_TYPES, LANGS, type EntryType, type Lang } from '../../domain/languages.ts';
 import { fr } from '../../i18n/fr.ts';
-import { toggle } from './searchParams.ts';
 
 export function LangChips({
   selected,
-  onChange,
+  onToggle,
 }: {
   selected: readonly Lang[];
-  onChange: (langs: Lang[]) => void;
+  onToggle: (lang: Lang) => void;
 }) {
   return (
     <div className="chips" role="group" aria-label={fr.home.langFilter}>
@@ -19,7 +18,7 @@ export function LangChips({
           className="chip"
           aria-pressed={selected.includes(lang)}
           onClick={() => {
-            onChange(toggle(selected, lang));
+            onToggle(lang);
           }}
         >
           <Flag lang={lang} />
@@ -32,10 +31,10 @@ export function LangChips({
 
 export function TypeChips({
   selected,
-  onChange,
+  onToggle,
 }: {
   selected: readonly EntryType[];
-  onChange: (types: EntryType[]) => void;
+  onToggle: (type: EntryType) => void;
 }) {
   return (
     <div className="chips" role="group" aria-label={fr.home.typeFilter}>
@@ -46,7 +45,7 @@ export function TypeChips({
           className="chip"
           aria-pressed={selected.includes(type)}
           onClick={() => {
-            onChange(toggle(selected, type));
+            onToggle(type);
           }}
         >
           {fr.entryTypes[type]}

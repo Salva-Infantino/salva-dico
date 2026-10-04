@@ -1,21 +1,21 @@
-import { Route, Routes } from 'react-router';
+import { Outlet } from 'react-router';
 import { AccessDeniedPage } from './auth/AccessDeniedPage.tsx';
 import { useAuth, type SignedInUser } from './auth/AuthContext.ts';
 import { SignInPage } from './auth/SignInPage.tsx';
+import { NotificationsProvider } from './components/notifications/NotificationsProvider.tsx';
 import { UpdatePrompt } from './components/UpdatePrompt.tsx';
 import { useEntries } from './data/EntriesContext.ts';
 import { EntriesProvider } from './data/EntriesProvider.tsx';
-import { DictionaryPage } from './features/dictionary/DictionaryPage.tsx';
-import { EntryDetailPage } from './features/entry/EntryDetailPage.tsx';
+import { EntryActionsProvider } from './data/EntryActionsProvider.tsx';
 import { LoadingScreen } from './pages/LoadingScreen.tsx';
-import { NotFoundPage } from './pages/NotFoundPage.tsx';
 
+/** Root layout of the data router: auth gate, initial sync, then the current page. */
 export function App() {
   return (
-    <>
+    <NotificationsProvider>
       <AuthGate />
       <UpdatePrompt />
-    </>
+    </NotificationsProvider>
   );
 }
 
@@ -29,7 +29,9 @@ function AuthGate() {
     case 'signedIn':
       return (
         <EntriesProvider uid={state.user.uid}>
-          <SignedInApp user={state.user} />
+          <EntryActionsProvider uid={state.user.uid}>
+            <SignedInApp user={state.user} />
+          </EntryActionsProvider>
         </EntriesProvider>
       );
   }
@@ -40,11 +42,5 @@ function SignedInApp({ user }: { user: SignedInUser }) {
   if (entries.status === 'loading') return <LoadingScreen />;
   if (entries.status === 'denied') return <AccessDeniedPage uid={user.uid} email={user.email} />;
 
-  return (
-    <Routes>
-      <Route path="/" element={<DictionaryPage />} />
-      <Route path="/entries/:id" element={<EntryDetailPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  );
+  return <Outlet />;
 }

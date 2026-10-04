@@ -11,6 +11,8 @@
   --color-accent-contrast: #ffffff;
   --color-focus: #2563eb;
   --color-error: #b3261e;
+  --color-warning: #8a5300;
+  --color-warning-bg: #fff4e0;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -41,6 +43,8 @@
     --color-accent-contrast: #0d1b2a;
     --color-focus: #7aa7ff;
     --color-error: #f2b8b5;
+    --color-warning: #ffcf8a;
+    --color-warning-bg: #3a2a10;
   }
 }
 
@@ -74,7 +78,18 @@ button {
   color: var(--color-accent-contrast);
 }
 
-button.secondary {
+/* Links styled as buttons. */
+a.button {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+}
+
+button.secondary,
+a.button.secondary {
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border);
@@ -113,27 +128,6 @@ button.secondary {
 
 .muted {
   color: var(--color-text-muted);
-}
-
-.toast {
-  position: fixed;
-  inset-inline: var(--space-4);
-  bottom: max(var(--space-4), env(safe-area-inset-bottom));
-  max-width: 32rem;
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
-}
-
-.toast span {
-  flex: 1 1 12rem;
 }
 
 /* --- Utilities ---------------------------------------------------------------- */
@@ -353,6 +347,305 @@ button.chip[aria-pressed='true'] {
   padding: 0;
   list-style: none;
   font-size: 1.125rem;
+}
+
+/* --- Buttons and feedback ---------------------------------------------------------- */
+
+button.danger {
+  color: #ffffff;
+  background: var(--color-error);
+}
+
+@media (prefers-color-scheme: dark) {
+  button.danger {
+    color: #1b1b1f;
+  }
+}
+
+button.danger-outline {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.warning {
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+}
+
+.fab {
+  position: fixed;
+  right: max(var(--space-4), env(safe-area-inset-right));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  font-size: 2rem;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+
+.no-results {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.toasts {
+  position: fixed;
+  top: max(var(--space-3), env(safe-area-inset-top));
+  inset-inline: var(--space-4);
+  z-index: 10;
+  display: grid;
+  gap: var(--space-2);
+  max-width: 28rem;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.toast-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.15);
+  pointer-events: auto;
+}
+
+.toast-error {
+  border-color: var(--color-error);
+}
+
+.confirm-dialog {
+  width: min(28rem, calc(100% - 2 * var(--space-4)));
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.confirm-dialog::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+.confirm-dialog h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.dialog-actions,
+.form-actions,
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+
+.entry-actions {
+  margin-bottom: var(--space-4);
+}
+
+/* Mastered switch: a button with role="switch". */
+button.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.switch-track {
+  position: relative;
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--color-border);
+  transition: background 0.15s;
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.15s;
+}
+
+button.switch[aria-checked='true'] .switch-track {
+  background: var(--color-accent);
+}
+
+button.switch[aria-checked='true'] .switch-track::after {
+  transform: translateX(1rem);
+}
+
+/* --- Entry form ------------------------------------------------------------------------ */
+
+.page.editor {
+  max-width: 48rem;
+  padding-bottom: 6rem;
+}
+
+.entry-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.entry-form fieldset {
+  margin: 0;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+
+.lang-fieldset {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.entry-form .lang-fieldset {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.lang-fieldset > legend {
+  float: left;
+  width: 100%;
+  margin-bottom: var(--space-1);
+}
+
+.translation-row {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.noun-fields {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field-grid {
+  display: grid;
+  gap: var(--space-2) var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field label,
+.gender legend {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  font: inherit;
+  font-size: max(1rem, 16px);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.field [aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-error);
+}
+
+.gender {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gender legend {
+  float: left;
+  margin-inline-end: var(--space-2);
+}
+
+.inline-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+}
+
+.type-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.type-choice legend {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+
+.chip-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+}
+
+.chip-choice:has(input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  justify-content: flex-end;
+  padding: var(--space-3) 0 max(var(--space-3), env(safe-area-inset-bottom));
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border);
 }
 
 @media (prefers-reduced-motion: reduce) {

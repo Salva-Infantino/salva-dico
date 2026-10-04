@@ -1,13 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FirebaseError } from 'firebase/app';
-import { MemoryRouter } from 'react-router';
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { App } from './App.tsx';
 import { AuthContext, type AuthContextValue, type AuthState } from './auth/AuthContext.ts';
 import type { EntriesSyncOptions } from './data/entriesSync.ts';
 import type { Entry } from './domain/schemas.ts';
 import { fr } from './i18n/fr.ts';
+import { routes } from './routes.tsx';
 import { arbreContent, garconContent, makeEntry } from './test/fixtures.ts';
 
 vi.mock('virtual:pwa-register/react', () => ({
@@ -40,9 +40,7 @@ function renderApp(state: AuthState, path = '/') {
   const auth: AuthContextValue = { state, signIn, signOut };
   return render(
     <AuthContext value={auth}>
-      <MemoryRouter initialEntries={[path]}>
-        <App />
-      </MemoryRouter>
+      <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
     </AuthContext>,
   );
 }

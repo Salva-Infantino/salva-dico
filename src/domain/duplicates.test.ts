@@ -7,7 +7,7 @@ import {
   makeEntry,
   seLeverContent,
 } from '../test/fixtures.ts';
-import { findDuplicates } from './duplicates.ts';
+import { createDuplicateFinder, findDuplicates } from './duplicates.ts';
 import type { Entry } from './schemas.ts';
 
 const entries: Entry[] = [
@@ -60,5 +60,35 @@ describe('findDuplicates', () => {
 
   it('returns nothing for blank text', () => {
     expect(ids('fr', '   ')).toEqual([]);
+  });
+});
+
+describe('createDuplicateFinder', () => {
+  const find = createDuplicateFinder([
+    ...entries,
+    makeEntry(garconContent, { id: 'deleted', deleted: true }),
+  ]);
+
+  it('gives the same answers as findDuplicates', () => {
+    const cases = [
+      ['fr', 'GARÇON'],
+      ['it', "L'albero"],
+      ['fr', 'grandes'],
+      ['en', 'to go'],
+      ['fr', 'lever'],
+      ['fr', 'garço'],
+      ['fr', '  '],
+    ] as const;
+    for (const [lang, text] of cases) {
+      expect(find(lang, text).map((e) => e.id)).toEqual(ids(lang, text));
+    }
+  });
+
+  it('excludes the entry being edited and deleted entries', () => {
+    expect(find('fr', 'garçon', { excludeId: 'garcon' })).toEqual([]);
+  });
+
+  it('reports an entry once even when several keys match', () => {
+    expect(find('fr', 'se lever').map((e) => e.id)).toEqual(['se-lever']);
   });
 });

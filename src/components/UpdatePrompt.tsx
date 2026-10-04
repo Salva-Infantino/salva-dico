@@ -1,37 +1,40 @@
+import { useEffect } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { fr } from '../i18n/fr.ts';
+import { useNotify } from './notifications/NotificationsContext.ts';
 
 /**
- * Shows a non-blocking banner when a new service worker is waiting, so the user
- * chooses when to reload (never in the middle of editing an entry).
+ * Service worker lifecycle messages, shown as notifications at the top of the
+ * screen so they never cover the add button or the form's save button:
+ * - "ready offline" once, briefly;
+ * - "new version" until the user reloads or dismisses it, so an update never
+ *   interrupts an edit in progress.
  */
 export function UpdatePrompt() {
+  const notify = useNotify();
   const {
     needRefresh: [needRefresh, setNeedRefresh],
     offlineReady: [offlineReady, setOfflineReady],
     updateServiceWorker,
   } = useRegisterSW();
 
-  if (!needRefresh && !offlineReady) {
-    return null;
-  }
-
-  const close = () => {
-    setNeedRefresh(false);
+  useEffect(() => {
+    if (!offlineReady) return;
+    notify(fr.pwa.offlineReady);
     setOfflineReady(false);
-  };
+  }, [offlineReady, setOfflineReady, notify]);
 
-  return (
-    <div className="toast" role="status">
-      <span>{needRefresh ? fr.pwa.updateAvailable : fr.pwa.offlineReady}</span>
-      {needRefresh && (
-        <button type="button" onClick={() => void updateServiceWorker(true)}>
-          {fr.pwa.reload}
-        </button>
-      )}
-      <button type="button" className="secondary" onClick={close}>
-        {fr.pwa.dismiss}
-      </button>
-    </div>
-  );
+  useEffect(() => {
+    if (!needRefresh) return;
+    notify(fr.pwa.updateAvailable, 'success', {
+      persistent: true,
+      action: {
+        label: fr.pwa.reload,
+        onClick: () => void updateServiceWorker(true),
+      },
+    });
+    setNeedRefresh(false);
+  }, [needRefresh, setNeedRefresh, notify, updateServiceWorker]);
+
+  return null;
 }

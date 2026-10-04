@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fr } from '../i18n/fr.ts';
+import { NotificationsProvider } from './notifications/NotificationsProvider.tsx';
 import { UpdatePrompt } from './UpdatePrompt.tsx';
 
 const setNeedRefresh = vi.fn();
@@ -17,33 +18,41 @@ vi.mock('virtual:pwa-register/react', () => ({
   }),
 }));
 
+function renderPrompt() {
+  return render(
+    <NotificationsProvider>
+      <UpdatePrompt />
+    </NotificationsProvider>,
+  );
+}
+
 describe('UpdatePrompt', () => {
   beforeEach(() => {
     swState.needRefresh = false;
     swState.offlineReady = false;
   });
 
-  it('renders nothing when there is no update and the app is not newly offline-ready', () => {
-    const { container } = render(<UpdatePrompt />);
-    expect(container).toBeEmptyDOMElement();
+  it('shows nothing when there is no update and the app is not newly offline-ready', () => {
+    renderPrompt();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('offers to reload when a new version is waiting', async () => {
+  it('announces once that the app works offline', () => {
+    swState.offlineReady = true;
+    renderPrompt();
+    expect(screen.getByRole('status')).toHaveTextContent(fr.pwa.offlineReady);
+    expect(setOfflineReady).toHaveBeenCalledWith(false);
+  });
+
+  it('offers to reload when a new version is waiting, until dismissed', async () => {
     swState.needRefresh = true;
-    render(<UpdatePrompt />);
+    renderPrompt();
 
     expect(screen.getByRole('status')).toHaveTextContent(fr.pwa.updateAvailable);
     await userEvent.click(screen.getByRole('button', { name: fr.pwa.reload }));
     expect(updateServiceWorker).toHaveBeenCalledWith(true);
-  });
 
-  it('can be dismissed', async () => {
-    swState.offlineReady = true;
-    render(<UpdatePrompt />);
-
-    expect(screen.queryByRole('button', { name: fr.pwa.reload })).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: fr.pwa.dismiss }));
-    expect(setNeedRefresh).toHaveBeenCalledWith(false);
-    expect(setOfflineReady).toHaveBeenCalledWith(false);
+    await userEvent.click(screen.getByRole('button', { name: fr.notifications.close }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });

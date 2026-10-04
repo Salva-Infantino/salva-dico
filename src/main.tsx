@@ -1,10 +1,13 @@
 import './config/zod.ts';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router';
-import { App } from './App.tsx';
+import { createBrowserRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { AuthProvider } from './auth/AuthProvider.tsx';
+import { routes } from './routes.tsx';
 import './styles/global.css';
+
+const router = createBrowserRouter(routes);
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,10 +16,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 );

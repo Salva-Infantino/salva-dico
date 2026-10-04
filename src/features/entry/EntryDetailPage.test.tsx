@@ -34,7 +34,6 @@ describe('EntryDetailPage', () => {
     }
     expect(container.querySelectorAll('.lang-card svg.flag')).toHaveLength(4);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(fr.entryTypes.noun);
-    expect(screen.getByText(fr.entry.mastered)).toBeInTheDocument();
   });
 
   it('shows noun articles, plural and gender as discreet details', () => {
@@ -88,5 +87,53 @@ describe('EntryDetailPage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: `← ${fr.entry.back}` }));
     expect(screen.getByTestId('location')).toHaveTextContent('/?q=arbre');
+  });
+});
+
+describe('EntryDetailPage actions', () => {
+  it('toggles the mastered switch', async () => {
+    const { actions } = renderWithEntries(entries, '/entries/arbre');
+    const toggle = screen.getByRole('switch', { name: fr.entry.mastered });
+    expect(toggle).toBeChecked();
+    await userEvent.click(toggle);
+    expect(actions.setMastered).toHaveBeenCalledWith('arbre', false);
+  });
+
+  it('links to the edit form, except for verbs (step 5)', () => {
+    renderWithEntries(entries, '/entries/arbre');
+    expect(screen.getByRole('link', { name: fr.entry.edit })).toHaveAttribute(
+      'href',
+      '/entries/arbre/edit',
+    );
+  });
+
+  it('does not offer to edit verbs yet', () => {
+    renderWithEntries(entries, '/entries/aller');
+    expect(screen.queryByRole('link', { name: fr.entry.edit })).not.toBeInTheDocument();
+    expect(screen.getByText(fr.entry.verbEditLater)).toBeInTheDocument();
+  });
+
+  it('deletes after confirmation and goes back', async () => {
+    const { actions } = renderWithEntries(entries, '/entries/souris');
+    await userEvent.click(screen.getByRole('button', { name: fr.entry.delete }));
+
+    const dialog = screen.getByRole('dialog', { name: fr.entry.deleteTitle });
+    // The safe choice is focused first.
+    expect(within(dialog).getByRole('button', { name: fr.dialog.cancel })).toHaveFocus();
+    await userEvent.click(within(dialog).getByRole('button', { name: fr.entry.delete }));
+
+    expect(actions.remove).toHaveBeenCalledWith('souris');
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/$/);
+    expect(screen.getByRole('status')).toHaveTextContent(fr.notifications.deleted);
+  });
+
+  it('keeps the entry when the deletion is cancelled', async () => {
+    const { actions } = renderWithEntries(entries, '/entries/souris');
+    await userEvent.click(screen.getByRole('button', { name: fr.entry.delete }));
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: fr.dialog.cancel }),
+    );
+    expect(actions.remove).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

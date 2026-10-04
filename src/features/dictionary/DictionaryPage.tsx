@@ -1,11 +1,12 @@
 import { useDeferredValue, useMemo } from 'react';
+import { Link } from 'react-router';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { buildSearchIndex, searchEntries } from '../../domain/search.ts';
 import { sortAlphabetically } from '../../domain/sort.ts';
 import { fr } from '../../i18n/fr.ts';
 import { EntryList } from './EntryList.tsx';
 import { LangChips, TypeChips } from './FilterChips.tsx';
-import { filtersToParams } from './searchParams.ts';
+import { filtersToParams, toggle } from './searchParams.ts';
 import { useDictionaryFilters } from './useDictionaryFilters.ts';
 
 export function DictionaryPage() {
@@ -20,6 +21,14 @@ export function DictionaryPage() {
     [entries],
   );
   const results = useMemo(() => searchEntries(index, deferredFilters), [index, deferredFilters]);
+  // New entries start in the only selected language, French otherwise.
+  const startLang = filters.langs.length === 1 ? filters.langs[0] : undefined;
+  const newEntryUrl = (text?: string) => {
+    const params = new URLSearchParams();
+    params.set('lang', startLang ?? 'fr');
+    if (text) params.set('text', text);
+    return `/entries/new?${params.toString()}`;
+  };
   const isFiltering =
     filters.query.trim() !== '' || filters.langs.length > 0 || filters.types.length > 0;
 
@@ -44,14 +53,14 @@ export function DictionaryPage() {
         </div>
         <LangChips
           selected={filters.langs}
-          onChange={(langs) => {
-            updateFilters({ langs }, { replace: true });
+          onToggle={(lang) => {
+            updateFilters((current) => ({ langs: toggle(current.langs, lang) }), { replace: true });
           }}
         />
         <TypeChips
           selected={filters.types}
-          onChange={(types) => {
-            updateFilters({ types }, { replace: true });
+          onToggle={(type) => {
+            updateFilters((current) => ({ types: toggle(current.types, type) }), { replace: true });
           }}
         />
       </header>
@@ -70,8 +79,21 @@ export function DictionaryPage() {
             : fr.home.entryCount(index.length)}
       </p>
 
-      {index.length > 0 && results.length === 0 && <p>{fr.home.noResults}</p>}
+      {results.length === 0 && (
+        <div className="no-results">
+          {index.length > 0 && <p>{fr.home.noResults}</p>}
+          {filters.query.trim() !== '' && (
+            <Link className="button" to={newEntryUrl(filters.query.trim())}>
+              {fr.home.addQuery(filters.query.trim())}
+            </Link>
+          )}
+        </div>
+      )}
       <EntryList key={filtersToParams(deferredFilters).toString()} entries={results} />
+
+      <Link className="fab" to={newEntryUrl()} aria-label={fr.home.add} title={fr.home.add}>
+        <span aria-hidden="true">+</span>
+      </Link>
     </main>
   );
 }

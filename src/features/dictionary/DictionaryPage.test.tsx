@@ -112,3 +112,20 @@ describe('DictionaryPage', () => {
     expect(rows()).toHaveLength(150);
   });
 });
+
+describe('DictionaryPage — adding entries', () => {
+  it('offers to add the searched word when nothing matches', async () => {
+    renderWithEntries(entries, '/?langs=it');
+    await userEvent.type(screen.getByRole('searchbox'), 'gattino');
+    const add = await screen.findByRole('link', { name: fr.home.addQuery('gattino') });
+    expect(add).toHaveAttribute('href', '/entries/new?lang=it&text=gattino');
+  });
+
+  it('has an add button starting in French by default', () => {
+    renderWithEntries(entries);
+    expect(screen.getByRole('link', { name: fr.home.add })).toHaveAttribute(
+      'href',
+      '/entries/new?lang=fr',
+    );
+  });
+});
