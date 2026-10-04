@@ -8,7 +8,7 @@ service cloud.firestore {
     // Firebase UID of the owner. Not a secret: the Firebase web config is public by
     // design, security comes from these rules. Rules cannot read environment variables.
     function ownerUid() {
-      return 'REPLACE_WITH_OWNER_UID';
+      return 'u4M1aUap8OWaCln0bdZlqDTHQ0a2';
     }
 
     function isOwner(uid) {
