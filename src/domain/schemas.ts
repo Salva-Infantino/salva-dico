@@ -177,12 +177,20 @@ const verbContent = {
   ),
 };
 
+/** One content schema per entry type (the AI function generates one type at a time). */
+export const entryContentVariants = {
+  expression: z.object(expressionContent),
+  noun: z.object(nounContent),
+  adjective: z.object(adjectiveContent),
+  verb: z.object(verbContent),
+};
+
 /** The editable part of an entry: used by the entry form, the AI function and the review screen. */
 export const entryContentSchema = z.discriminatedUnion('type', [
-  z.object(expressionContent),
-  z.object(nounContent),
-  z.object(adjectiveContent),
-  z.object(verbContent),
+  entryContentVariants.expression,
+  entryContentVariants.noun,
+  entryContentVariants.adjective,
+  entryContentVariants.verb,
 ]);
 
 // --- Stored entry ---------------------------------------------------------------

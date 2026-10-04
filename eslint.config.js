@@ -46,7 +46,14 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.config.{js,ts}', 'e2e/**/*.ts', 'tests/**/*.ts', 'scripts/**/*.ts'],
+    files: [
+      '*.config.{js,ts}',
+      'e2e/**/*.ts',
+      'tests/**/*.ts',
+      'scripts/**/*.ts',
+      'server/**/*.ts',
+      'netlify/**/*.ts',
+    ],
     languageOptions: {
       globals: globals.node,
     },

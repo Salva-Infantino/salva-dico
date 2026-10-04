@@ -3,6 +3,7 @@ import { loadEnv, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 import { contentSecurityPolicy, type CspOptions } from './csp.ts';
+import { devApiPlugin } from './server/devApiPlugin.ts';
 
 function cspMetaTag(options: CspOptions): Plugin {
   return {
@@ -27,6 +28,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      devApiPlugin(),
       cspMetaTag({
         authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? '',
         useEmulators: env.VITE_USE_EMULATORS === 'true',
@@ -86,7 +88,7 @@ export default defineConfig(({ mode }) => {
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
-      include: ['src/**/*.test.{ts,tsx}', '*.test.ts'],
+      include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts', '*.test.ts'],
       clearMocks: true,
       restoreMocks: true,
     },

@@ -28,6 +28,8 @@ allowBuilds:
   protobufjs: false
   # Native build for superstatic (Hosting emulator), which this project does not use.
   re2: false
+  # preinstall is a no-op echo.
+  '@google/genai': false
 
 # Reviewed peer ranges:
 # - eslint-plugin-jsx-a11y@6.10.2 (last release 2024) does not declare ESLint 10 yet;

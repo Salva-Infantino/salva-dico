@@ -3,7 +3,7 @@ import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
 // jsdom does not implement modal dialogs yet.
-if (!('showModal' in HTMLDialogElement.prototype)) {
+if (typeof HTMLDialogElement !== 'undefined' && !('showModal' in HTMLDialogElement.prototype)) {
   Object.assign(HTMLDialogElement.prototype, {
     showModal(this: HTMLDialogElement) {
       this.open = true;
