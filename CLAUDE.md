@@ -255,7 +255,12 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   filters, progressive rendering (100 rows + IntersectionObserver, `content-visibility`), entry detail.
   Dev data lives in the emulators only (`pnpm dev:emulators`, `scripts/seed-emulator.ts`); E2E tests run on
   a seeded emulator build. English flag = British flag (owner's choice, despite American English content).
-- Next step: 4 (Manual CRUD).
+- Step 4 (Manual CRUD): **done** (2026-10-04). Data router (`createBrowserRouter`, `useBlocker` for unsaved
+  changes, French error page). Editor for nouns, adjectives and expressions with live grammar hints (gender
+  from article, plural article, adjective forms) and duplicate warnings; verbs are edited in step 5.
+  Writes return immediately (offline-friendly); server rejections surface as notifications. PWA messages
+  are notifications at the top so they never cover the add or save buttons.
+- Next step: 5 (Conjugations).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
