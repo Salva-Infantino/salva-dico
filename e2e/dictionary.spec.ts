@@ -1,12 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-// Runs against the Firebase emulators seeded by scripts/seed-emulator.ts (26 entries).
-
-async function signIn(page: Page) {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Connexion de dev (émulateur)' }).click();
-  await expect(page.getByText('26 entrées')).toBeVisible();
-}
+import { expect, test } from '@playwright/test';
+import { signIn } from './helpers.ts';
 
 test('lists the dictionary alphabetically after sign-in', async ({ page }) => {
   await signIn(page);
