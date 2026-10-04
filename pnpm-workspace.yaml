@@ -1,0 +1,31 @@
+# Supply-chain hardening. See https://pnpm.io/supply-chain-security
+
+# Only install versions published at least 7 days ago (minutes),
+# leaving time for malicious releases to be detected and pulled.
+minimumReleaseAge: 10080
+
+# Refuse a version whose trust evidence (provenance / trusted publisher)
+# is weaker than an earlier version of the same package.
+trustPolicy: no-downgrade
+# Reviewed exceptions (pinned to exact versions):
+# - semver@6.3.1: legacy 6.x maintenance release published without provenance after
+#   7.x gained it; pulled transitively by @babel/core. Not a takeover.
+# - @trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1: single-maintainer fork adopted
+#   by workbox-build@7.4.1 (GoogleChrome/workbox#3328), build-time only, no provenance.
+trustPolicyExclude:
+  - 'semver@6.3.1'
+  - '@trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1'
+
+# Transitive dependencies may not come from git repos or raw tarball URLs.
+blockExoticSubdeps: true
+
+# Dependency install scripts are blocked unless explicitly reviewed here.
+strictDepBuilds: true
+allowBuilds: {}
+
+# Reviewed peer ranges:
+# - eslint-plugin-jsx-a11y@6.10.2 (last release 2024) does not declare ESLint 10 yet;
+#   verified that its rules load and report correctly under ESLint 10.
+peerDependencyRules:
+  allowedVersions:
+    'eslint-plugin-jsx-a11y>eslint': '10'
