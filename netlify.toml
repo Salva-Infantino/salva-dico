@@ -7,6 +7,22 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# Firebase Auth helper served from the app's own origin, so redirect sign-in keeps
+# working with third-party storage partitioning. Set VITE_FIREBASE_AUTH_DOMAIN to the
+# site's domain in Netlify. https://firebase.google.com/docs/auth/web/redirect-best-practices
+# Must stay before the SPA fallback.
+[[redirects]]
+  from = "/__/auth/*"
+  to = "https://salva-dico.firebaseapp.com/__/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/__/firebase/*"
+  to = "https://salva-dico.firebaseapp.com/__/firebase/:splat"
+  status = 200
+  force = true
+
 # SPA fallback: every unknown path serves the app shell (React Router handles it).
 [[redirects]]
   from = "/*"
@@ -17,11 +33,12 @@
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
-    X-Frame-Options = "DENY"
+    # SAMEORIGIN, not DENY: the app frames the proxied /__/auth/ helper.
+    X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
     Strict-Transport-Security = "max-age=63072000; includeSubDomains"
-    # Content-Security-Policy is added in step 2, once the Firebase origins are known.
+    # Content-Security-Policy is a <meta> tag injected at build time (see csp.ts).
 
 # Hashed build assets never change: cache them forever.
 [[headers]]
