@@ -246,7 +246,12 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   header deferred to step 2 (needs the Firebase origins).
 - Step 1 (Domain): **done** (2026-10-04). Zod 4 schemas, normalization, search index, duplicate detection,
   realistic fixtures in `src/test/fixtures.ts` (reusable as dev seed data in step 3).
-- Next step: 2 (Firebase).
+- Step 2 (Firebase): **done** (2026-10-04), except the production check of redirect sign-in through the
+  Netlify `/__/auth` proxy, which needs the Netlify site (set `VITE_FIREBASE_AUTH_DOMAIN` to the site domain
+  there and add it to Firebase Auth authorized domains). Firestore project `salva-dico` (eur3), rules deployed
+  with `pnpm exec firebase deploy --only firestore`. CSP is a build-time `<meta>` tag (`csp.ts`).
+  Local Java 21 for the emulator: Temurin in `~/.local/share/java/` (Homebrew has no Intel bottles).
+- Next step: 3 (Dictionary read).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
