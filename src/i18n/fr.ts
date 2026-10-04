@@ -95,7 +95,7 @@ export const fr = {
       summary: 'Certains champs sont à compléter.',
     },
     duplicate: (word: string, lang: string) => `« ${word} » existe déjà en ${lang.toLowerCase()}.`,
-    openExisting: "Voir l'entrée",
+    openExisting: (word: string, type: string) => `Voir « ${word} » (${type.toLowerCase()})`,
     duplicateTitle: 'Doublon possible',
     duplicateText: 'Certains mots existent déjà dans le dictionnaire.',
     saveAnyway: 'Enregistrer quand même',

@@ -142,17 +142,46 @@ describe('EntryEditorPage — new entry', () => {
     const { actions } = renderWithEntries(entries, '/entries/new');
     await fillExpression({ Français: 'le Garçon', Anglais: 'x', Espagnol: 'x', Italien: 'x' });
 
-    const warning = await within(section('Français')).findByText(/existe déjà en français/);
-    expect(within(warning).getByRole('link', { name: fr.editor.openExisting })).toHaveAttribute(
-      'href',
-      '/entries/garcon',
-    );
+    await within(section('Français')).findByText(/existe déjà en français/);
+    expect(
+      within(section('Français')).getByRole('link', {
+        name: fr.editor.openExisting('garçon', fr.entryTypes.noun),
+      }),
+    ).toHaveAttribute('href', '/entries/garcon');
 
     await save();
     expect(actions.create).not.toHaveBeenCalled();
     const dialog = screen.getByRole('dialog', { name: fr.editor.duplicateTitle });
     await userEvent.click(within(dialog).getByRole('button', { name: fr.editor.saveAnyway }));
     expect(actions.create).toHaveBeenCalledOnce();
+  });
+
+  it('warns once per word, with one link per existing entry', async () => {
+    const twins = [
+      makeEntry(garconContent, { id: 'garcon' }),
+      makeEntry(
+        {
+          type: 'expression',
+          translations: {
+            fr: [{ text: 'garçon !' }],
+            en: [{ text: 'waiter!' }],
+            es: [{ text: '¡camarero!' }],
+            it: [{ text: 'cameriere!' }],
+          },
+        },
+        { id: 'waiter' },
+      ),
+    ];
+    renderWithEntries(twins, '/entries/new');
+    await fillExpression({ Français: 'garçon' });
+
+    const french = section('Français');
+    expect(await within(french).findAllByText(/existe déjà en français/)).toHaveLength(1);
+    expect(
+      within(french)
+        .getAllByRole('link')
+        .map((link) => link.getAttribute('href')),
+    ).toEqual(['/entries/garcon', '/entries/waiter']);
   });
 
   it('asks before leaving with unsaved changes', async () => {

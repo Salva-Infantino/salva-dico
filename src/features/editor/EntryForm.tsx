@@ -3,6 +3,7 @@ import { Link, useBlocker } from 'react-router';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
 import { Flag } from '../../components/Flag.tsx';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
+import { headwords } from '../../domain/forms.ts';
 import { LANGS, type Lang } from '../../domain/languages.ts';
 import type { Entry, EntryContent } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -177,12 +178,23 @@ export function EntryForm({
                       updateRow(lang, index, patch);
                     }}
                   />
-                  {found.map((entry) => (
-                    <p key={entry.id} className="warning">
-                      {fr.editor.duplicate(row.text.trim(), fr.langs[lang])}{' '}
-                      <Link to={`/entries/${entry.id}`}>{fr.editor.openExisting}</Link>
-                    </p>
-                  ))}
+                  {found.length > 0 && (
+                    <div className="warning">
+                      <p>{fr.editor.duplicate(row.text.trim(), fr.langs[lang])}</p>
+                      <ul>
+                        {found.map((entry) => (
+                          <li key={entry.id}>
+                            <Link to={`/entries/${entry.id}`}>
+                              {fr.editor.openExisting(
+                                headwords(entry, 'fr').join(', '),
+                                fr.entryTypes[entry.type],
+                              )}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {rows.length > 1 && (
                     <button
                       type="button"

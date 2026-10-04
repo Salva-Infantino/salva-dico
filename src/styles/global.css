@@ -367,6 +367,15 @@ button.danger-outline {
   border-color: var(--color-error);
 }
 
+.warning p,
+.warning ul {
+  margin: 0;
+}
+
+.warning ul {
+  padding-inline-start: var(--space-4);
+}
+
 .warning {
   margin: var(--space-2) 0 0;
   padding: var(--space-2) var(--space-3);
