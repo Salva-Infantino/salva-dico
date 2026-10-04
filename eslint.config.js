@@ -22,6 +22,10 @@ export default defineConfig([
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    rules: {
+      // Allows omitting a property with `const { omitted, ...rest } = object`.
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    },
   },
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -35,7 +39,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.config.{js,ts}', 'e2e/**/*.ts'],
+    files: ['*.config.{js,ts}', 'e2e/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       globals: globals.node,
     },
