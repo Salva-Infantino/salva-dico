@@ -21,7 +21,13 @@ blockExoticSubdeps: true
 
 # Dependency install scripts are blocked unless explicitly reviewed here.
 strictDepBuilds: true
-allowBuilds: {}
+allowBuilds:
+  # Only fetches a web config when FIREBASE_WEBAPP_CONFIG is set (App Hosting); unused.
+  '@firebase/util': false
+  # Only prints a version-scheme warning.
+  protobufjs: false
+  # Native build for superstatic (Hosting emulator), which this project does not use.
+  re2: false
 
 # Reviewed peer ranges:
 # - eslint-plugin-jsx-a11y@6.10.2 (last release 2024) does not declare ESLint 10 yet;
