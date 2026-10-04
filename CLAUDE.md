@@ -122,6 +122,16 @@ interface ConjugationEN { base: string; pastSimple: string; pastParticiple: stri
 ```
 
 Decisions behind this model:
+- The Zod schemas in `src/domain/schemas.ts` are the source of truth; this section is a summary.
+- Domain timestamps are epoch milliseconds (`number`); conversion to Firestore `Timestamp` lives in the
+  Firebase layer only.
+- Nouns: `text` is the bare noun, articles are separate fields (`l'` + `arbre`). FR / ES / IT require
+  `gender` and `article`; `plural` + `pluralArticle` are optional (uncountable nouns) but go together.
+- Verbs: `text` is the infinitive as displayed, including the reflexive form (`se lever`, `alzarsi`);
+  EN `text` is the bare infinitive (`go`, not `to go`). Conjugated forms are stored without subject pronouns.
+- Search and duplicate detection ignore case, accents, punctuation, a leading article, and verb markers
+  (`to`, `se`/`s'`, `-se`, `-si`). Duplicates compare whole words (all adjective forms), search ranks
+  exact > prefix > word prefix > substring.
 - No literary tenses: no French *passé simple*, no Italian *passato remoto*.
 - No standalone past participle for FR / ES / IT: it is visible in the compound past.
 - Compound pasts include agreement where relevant (ex. `sono andato/a`, `suis allé(e)`).
@@ -234,7 +244,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 ## 11. Status
 - Step 0 (Setup): **done** (2026-10-04). Node 24 LTS for CI/Netlify, pnpm 12. Content-Security-Policy
   header deferred to step 2 (needs the Firebase origins).
-- Next step: 1 (Domain).
+- Step 1 (Domain): **done** (2026-10-04). Zod 4 schemas, normalization, search index, duplicate detection,
+  realistic fixtures in `src/test/fixtures.ts` (reusable as dev seed data in step 3).
+- Next step: 2 (Firebase).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
