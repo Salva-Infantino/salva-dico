@@ -22,7 +22,7 @@ import {
 import { parseCursor } from '../../src/data/syncCursor.ts';
 import type { Entry } from '../../src/domain/schemas.ts';
 import { arbreContent, garconContent, grandContent } from '../../src/test/fixtures.ts';
-import { createTestEnv, OWNER_UID } from './testEnv.ts';
+import { createTestEnv, OWNER_UID, PROJECT_ID } from './testEnv.ts';
 
 let env: RulesTestEnvironment;
 const stops: (() => void)[] = [];
@@ -63,7 +63,7 @@ function syncUntil(
 }
 
 function storedCursor(storage: CursorStorage) {
-  return parseCursor(storage.getItem(cursorStorageKey(OWNER_UID)));
+  return parseCursor(storage.getItem(cursorStorageKey(PROJECT_ID, OWNER_UID)));
 }
 
 beforeAll(async () => {
@@ -157,7 +157,7 @@ describe('entries sync (Firestore emulator)', () => {
 
     const storage = memoryStorage();
     // A cursor far in the future would hide every entry if it were trusted.
-    storage.setItem(cursorStorageKey(OWNER_UID), '4102444800:0');
+    storage.setItem(cursorStorageKey(PROJECT_ID, OWNER_UID), '4102444800:0');
     const entries = await syncUntil(newDevice(), storage, (e) => e.size === 1);
     expect(entries.size).toBe(1);
   });

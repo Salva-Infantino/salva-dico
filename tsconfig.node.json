@@ -28,9 +28,12 @@
   "include": [
     "vite.config.ts",
     "csp.ts",
+    "csp.test.ts",
+    "src/config/emulator.ts",
     "vitest.emulator.config.ts",
     "playwright.config.ts",
     "e2e",
-    "tests"
+    "tests",
+    "scripts"
   ]
 }

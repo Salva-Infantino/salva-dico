@@ -39,7 +39,14 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.config.{js,ts}', 'e2e/**/*.ts', 'tests/**/*.ts'],
+    // Test helpers are never hot-reloaded.
+    files: ['src/test/**/*.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: ['*.config.{js,ts}', 'e2e/**/*.ts', 'tests/**/*.ts', 'scripts/**/*.ts'],
     languageOptions: {
       globals: globals.node,
     },

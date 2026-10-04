@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseFirebaseConfig } from './env.ts';
+import { parseClientEnv } from './env.ts';
 
 const env = {
   VITE_FIREBASE_API_KEY: 'key',
@@ -9,19 +9,30 @@ const env = {
   MODE: 'test',
 };
 
-describe('parseFirebaseConfig', () => {
+describe('parseClientEnv', () => {
   it('maps environment variables to the Firebase web config', () => {
-    expect(parseFirebaseConfig(env)).toEqual({
-      apiKey: 'key',
-      authDomain: 'example.firebaseapp.com',
-      projectId: 'example',
-      appId: '1:2:web:3',
+    expect(parseClientEnv(env)).toEqual({
+      firebase: {
+        apiKey: 'key',
+        authDomain: 'example.firebaseapp.com',
+        projectId: 'example',
+        appId: '1:2:web:3',
+      },
+      useEmulators: false,
     });
+  });
+
+  it('enables the emulators only with VITE_USE_EMULATORS=true', () => {
+    expect(parseClientEnv({ ...env, VITE_USE_EMULATORS: 'true' }).useEmulators).toBe(true);
+    expect(parseClientEnv({ ...env, VITE_USE_EMULATORS: 'false' }).useEmulators).toBe(false);
+    expect(() => parseClientEnv({ ...env, VITE_USE_EMULATORS: 'yes' })).toThrow(
+      /VITE_USE_EMULATORS/,
+    );
   });
 
   it('names the missing variables in the error', () => {
     const { VITE_FIREBASE_APP_ID, ...incomplete } = env;
-    expect(() => parseFirebaseConfig({ ...incomplete, VITE_FIREBASE_API_KEY: '' })).toThrow(
+    expect(() => parseClientEnv({ ...incomplete, VITE_FIREBASE_API_KEY: '' })).toThrow(
       /VITE_FIREBASE_API_KEY, VITE_FIREBASE_APP_ID/,
     );
   });

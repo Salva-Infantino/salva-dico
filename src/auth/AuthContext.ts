@@ -16,6 +16,8 @@ export interface AuthContextValue {
   state: AuthState;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  /** Only with the local emulators: signs in as the seeded owner account. */
+  signInWithEmulatorOwner?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

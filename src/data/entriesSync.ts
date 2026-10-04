@@ -34,8 +34,9 @@ export interface EntriesSyncOptions {
   onError?: (error: Error) => void;
 }
 
-export function cursorStorageKey(uid: string): string {
-  return `salva-dico:sync-cursor:${uid}`;
+/** Per project and user: the real project and the emulators can share an origin (localhost). */
+export function cursorStorageKey(projectId: string, uid: string): string {
+  return `salva-dico:sync-cursor:${projectId}:${uid}`;
 }
 
 /**
@@ -49,7 +50,7 @@ export function cursorStorageKey(uid: string): string {
 export function startEntriesSync(options: EntriesSyncOptions): () => void {
   const { db, uid, storage, onEntries, onError } = options;
   const entries = new Map<string, Entry>();
-  const key = cursorStorageKey(uid);
+  const key = cursorStorageKey(db.app.options.projectId ?? '', uid);
   let unsubscribe: (() => void) | null = null;
   const stopped = new AbortController();
 

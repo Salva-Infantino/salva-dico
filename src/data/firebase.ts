@@ -1,19 +1,22 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import { connectAuthEmulator, getAuth, type Auth } from 'firebase/auth';
 import {
   CACHE_SIZE_UNLIMITED,
+  connectFirestoreEmulator,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
   type Firestore,
 } from 'firebase/firestore';
-import { parseFirebaseConfig, type FirebaseWebConfig } from '../config/env.ts';
+import { EMULATOR_HOSTS } from '../config/emulator.ts';
+import { parseClientEnv, type FirebaseWebConfig } from '../config/env.ts';
 
 export interface FirebaseServices {
   app: FirebaseApp;
   auth: Auth;
   db: Firestore;
   config: FirebaseWebConfig;
+  useEmulators: boolean;
 }
 
 let services: FirebaseServices | null = null;
@@ -22,7 +25,7 @@ let services: FirebaseServices | null = null;
 export function getFirebase(): FirebaseServices {
   if (services) return services;
 
-  const config = parseFirebaseConfig(import.meta.env);
+  const { firebase: config, useEmulators } = parseClientEnv(import.meta.env);
   const app = initializeApp(config);
   const db = initializeFirestore(app, {
     localCache: persistentLocalCache({
@@ -32,7 +35,15 @@ export function getFirebase(): FirebaseServices {
       cacheSizeBytes: CACHE_SIZE_UNLIMITED,
     }),
   });
-  services = { app, auth: getAuth(app), db, config };
+  const auth = getAuth(app);
+  if (useEmulators) {
+    const { auth: authHost, firestore } = EMULATOR_HOSTS;
+    connectAuthEmulator(auth, `http://${authHost.host}:${String(authHost.port)}`, {
+      disableWarnings: true,
+    });
+    connectFirestoreEmulator(db, firestore.host, firestore.port);
+  }
+  services = { app, auth, db, config, useEmulators };
   return services;
 }
 

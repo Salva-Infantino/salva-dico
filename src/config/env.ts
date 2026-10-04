@@ -10,6 +10,7 @@ const envSchema = z.object({
   VITE_FIREBASE_AUTH_DOMAIN: z.string().min(1),
   VITE_FIREBASE_PROJECT_ID: z.string().min(1),
   VITE_FIREBASE_APP_ID: z.string().min(1),
+  VITE_USE_EMULATORS: z.enum(['true', 'false']).optional(),
 });
 
 export interface FirebaseWebConfig {
@@ -19,7 +20,13 @@ export interface FirebaseWebConfig {
   appId: string;
 }
 
-export function parseFirebaseConfig(env: Record<string, unknown>): FirebaseWebConfig {
+export interface ClientEnv {
+  firebase: FirebaseWebConfig;
+  /** Connect to the local Firebase emulators instead of the real project. */
+  useEmulators: boolean;
+}
+
+export function parseClientEnv(env: Record<string, unknown>): ClientEnv {
   const result = envSchema.safeParse(env);
   if (!result.success) {
     const missing = result.error.issues.map((issue) => issue.path.join('.')).join(', ');
@@ -27,9 +34,12 @@ export function parseFirebaseConfig(env: Record<string, unknown>): FirebaseWebCo
   }
   const vars = result.data;
   return {
-    apiKey: vars.VITE_FIREBASE_API_KEY,
-    authDomain: vars.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: vars.VITE_FIREBASE_PROJECT_ID,
-    appId: vars.VITE_FIREBASE_APP_ID,
+    firebase: {
+      apiKey: vars.VITE_FIREBASE_API_KEY,
+      authDomain: vars.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: vars.VITE_FIREBASE_PROJECT_ID,
+      appId: vars.VITE_FIREBASE_APP_ID,
+    },
+    useEmulators: vars.VITE_USE_EMULATORS === 'true',
   };
 }

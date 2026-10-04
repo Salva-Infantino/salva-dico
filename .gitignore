@@ -18,6 +18,8 @@ playwright/.cache
 .env
 .env.*
 !.env.example
+# Fake config for the local emulators (see the file header).
+!.env.emulator
 *.local
 
 # Netlify

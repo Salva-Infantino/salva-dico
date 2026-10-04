@@ -3,11 +3,13 @@ import {
   getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { EMULATOR_OWNER } from '../config/emulator.ts';
 import { getFirebase } from '../data/firebase.ts';
 import { AuthContext, type AuthState, type SignInError } from './AuthContext.ts';
 import { chooseSignInMethod } from './signInMethod.ts';
@@ -23,6 +25,21 @@ function toSignInError(error: unknown): SignInError | null {
   console.error('Sign-in failed', error);
   return 'failed';
 }
+
+/**
+ * Emulator-only sign-in. The condition is replaced at build time, so this code and
+ * the emulator credentials are removed from production bundles.
+ */
+const signInWithEmulatorOwner =
+  import.meta.env.VITE_USE_EMULATORS === 'true'
+    ? async () => {
+        await signInWithEmailAndPassword(
+          getFirebase().auth,
+          EMULATOR_OWNER.email,
+          EMULATOR_OWNER.password,
+        );
+      }
+    : undefined;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: 'loading' });
@@ -63,6 +80,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => firebaseSignOut(getFirebase().auth), []);
 
-  const value = useMemo(() => ({ state, signIn, signOut }), [state, signIn, signOut]);
+  const value = useMemo(
+    () => ({
+      state,
+      signIn,
+      signOut,
+      ...(signInWithEmulatorOwner && {
+        signInWithEmulatorOwner: () =>
+          signInWithEmulatorOwner().catch((error: unknown) => {
+            setState({ status: 'signedOut', error: toSignInError(error) });
+          }),
+      }),
+    }),
+    [state, signIn, signOut],
+  );
   return <AuthContext value={value}>{children}</AuthContext>;
 }
