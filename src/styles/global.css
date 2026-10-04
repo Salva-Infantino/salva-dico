@@ -136,6 +136,225 @@ button.secondary {
   flex: 1 1 12rem;
 }
 
+/* --- Utilities ---------------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.link-button {
+  padding: 0;
+  background: none;
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  margin-inline-start: var(--space-2);
+  padding: 0.1rem var(--space-2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+}
+
+/* --- Flags and grammar -------------------------------------------------------- */
+
+.flag {
+  flex-shrink: 0;
+  width: 1.5em;
+  height: 1em;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.headword {
+  font-weight: 600;
+}
+
+/* Grammar details stay discreet so the main word stands out. */
+.grammar {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.grammar.details {
+  font-style: italic;
+}
+
+/* --- Dictionary ---------------------------------------------------------------- */
+
+.page.dictionary {
+  max-width: 64rem;
+  padding-top: 0;
+}
+
+.search-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-2);
+  margin-inline: calc(-1 * var(--space-4));
+  padding: max(var(--space-3), env(safe-area-inset-top)) var(--space-4) var(--space-3);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-field input {
+  width: 100%;
+  /* 16px minimum: iOS zooms into smaller inputs on focus. */
+  font: inherit;
+  font-size: max(1rem, 16px);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+button.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+button.chip[aria-pressed='true'] {
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.result-count {
+  margin: var(--space-3) 0;
+  font-size: 0.875rem;
+}
+
+.entry-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  /* Off-screen rows skip layout and paint: cheap with thousands of rows. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 4rem;
+}
+
+.entry-row:hover {
+  background: var(--color-surface);
+}
+
+@media (min-width: 48rem) {
+  .entry-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    contain-intrinsic-size: auto 2.75rem;
+  }
+}
+
+.entry-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.entry-cell-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-more {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+/* --- Entry detail ----------------------------------------------------------------- */
+
+.page.entry-detail {
+  max-width: 64rem;
+}
+
+.entry-title {
+  margin-top: var(--space-4);
+}
+
+.lang-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .lang-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .lang-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.lang-card {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.lang-card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.translation-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.125rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

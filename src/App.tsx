@@ -5,7 +5,8 @@ import { SignInPage } from './auth/SignInPage.tsx';
 import { UpdatePrompt } from './components/UpdatePrompt.tsx';
 import { useEntries } from './data/EntriesContext.ts';
 import { EntriesProvider } from './data/EntriesProvider.tsx';
-import { HomePage } from './pages/HomePage.tsx';
+import { DictionaryPage } from './features/dictionary/DictionaryPage.tsx';
+import { EntryDetailPage } from './features/entry/EntryDetailPage.tsx';
 import { LoadingScreen } from './pages/LoadingScreen.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 
@@ -41,7 +42,8 @@ function SignedInApp({ user }: { user: SignedInUser }) {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<DictionaryPage />} />
+      <Route path="/entries/:id" element={<EntryDetailPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
