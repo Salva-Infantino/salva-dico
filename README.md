@@ -31,14 +31,26 @@ A personal, offline-first PWA to build a **four-language vocabulary dictionary**
 
 ## Getting started
 
-Requirements: Node.js 24 LTS (see `.nvmrc`) and pnpm (version pinned in `package.json`).
+Requirements: Node.js 24 LTS (see `.nvmrc`), pnpm (version pinned in `package.json`) and, for the
+Firebase emulators, Java 21.
 
 ```sh
 pnpm install
 pnpm exec playwright install   # browsers for E2E tests, first time only
-cp .env.example .env.local     # then fill in the values
-pnpm dev
 ```
+
+**Local development without touching real data** (recommended): runs the app against the Firebase
+emulators, seeded with ~25 realistic entries. Use the "Connexion de dev (émulateur)" button to sign in.
+
+```sh
+pnpm dev:emulators             # app on http://localhost:5173, emulator UI on http://localhost:4000
+```
+
+To seed thousands of synthetic entries for performance checks:
+`firebase emulators:exec --only firestore,auth --project demo-salva-dico --ui 'node scripts/seed-emulator.ts --bulk 3000 && vite --mode emulator'`.
+
+**Against the real Firebase project:** copy `.env.example` to `.env.local`, fill in the web config,
+then run `pnpm dev`.
 
 ## Scripts
 

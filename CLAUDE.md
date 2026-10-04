@@ -160,7 +160,7 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 ## 7. Features and screens
 
 ### 7.1 Dictionary (home)
-- One search bar that searches the 4 languages at once, with language filter chips (🇫🇷 🇬🇧 🇪🇸 🇮🇹).
+- One search bar that searches the 4 languages at once, with language filter chips (🇫🇷 🇬🇧 🇪🇸 🇮🇹, bundled SVG flags).
 - Search is case-insensitive, accent-insensitive, and ignores articles.
 - Type filter (noun / verb / adjective / expression).
 - Compact list; each row shows the entry in the 4 languages with flags.
@@ -251,7 +251,11 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   there and add it to Firebase Auth authorized domains). Firestore project `salva-dico` (eur3), rules deployed
   with `pnpm exec firebase deploy --only firestore`. CSP is a build-time `<meta>` tag (`csp.ts`).
   Local Java 21 for the emulator: Temurin in `~/.local/share/java/` (Homebrew has no Intel bottles).
-- Next step: 3 (Dictionary read).
+- Step 3 (Dictionary read): **done** (2026-10-04). Alphabetical list (French collation), URL-backed
+  filters, progressive rendering (100 rows + IntersectionObserver, `content-visibility`), entry detail.
+  Dev data lives in the emulators only (`pnpm dev:emulators`, `scripts/seed-emulator.ts`); E2E tests run on
+  a seeded emulator build. English flag = British flag (owner's choice, despite American English content).
+- Next step: 4 (Manual CRUD).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
