@@ -81,12 +81,14 @@ call the backend".
   API key only identifies the project. The owner UID is a literal in the rules: not a secret, and
   rules cannot read environment variables.
 - **The Gemini API key never reaches the client.** It only lives in the Netlify environment. The
-  function verifies the Firebase ID token with `firebase-admin` and checks the owner UID **before**
-  calling Gemini, so nobody else can spend the quota. Its answers are validated with the same Zod
+  function verifies the Firebase ID token and checks the owner UID **before**
+  calling Gemini, so nobody else can spend the quota. The token is verified with `jose`, as Firebase
+  documents for third-party JWT libraries (Google's public keys, RS256, audience, issuer, expiry,
+  auth time): lighter than `firebase-admin`, whose dependencies did not load on Netlify. Its answers are validated with the same Zod
   schemas as the entries, and errors are mapped to a fixed list of codes (no internal details leak).
   The function is **rate limited** per IP (Netlify code-based rule), and refuses to start if
-  `FIREBASE_AUTH_EMULATOR_HOST` is set for a real project: `firebase-admin` would then skip the
-  token signature check, and the owner UID is public.
+  `FIREBASE_AUTH_EMULATOR_HOST` is set for a real project: that mode accepts the unsigned tokens of
+  the Auth emulator, and the owner UID is public.
 - **API keys are restricted in Google Cloud:** the public Firebase key only to the Firebase APIs
   and the site's referrers (never the Gemini API, which an unrestricted key in the same project
   could call), the Gemini key only to the Gemini API.
@@ -97,8 +99,8 @@ call the backend".
 - **Supply chain** (`pnpm-workspace.yaml`): only versions published at least 7 days ago,
   `trustPolicy: no-downgrade`, no git or tarball sub-dependencies, no install script unless
   reviewed. GitHub Actions are pinned to commit SHAs and the CI token is read-only. `pnpm audit`
-  findings are reviewed: a vulnerable `@grpc/grpc-js` pinned by Firestore (Node only) is overridden;
-  a `uuid` advisory in `firebase-admin`'s unused Storage module is accepted.
+  findings are reviewed: a vulnerable `@grpc/grpc-js` pinned by Firestore (Node only) is overridden.
+  `pnpm audit --prod` reports no known vulnerability.
 
 ## Offline and sync strategy
 

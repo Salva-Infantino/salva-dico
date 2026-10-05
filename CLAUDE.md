@@ -61,7 +61,8 @@ No UI framework unless we agree otherwise. Theme follows the system (`prefers-co
   The owner UID is configured, never hardcoded in client logic beyond what the rules need.
 - The Gemini API key lives **only** in Netlify environment variables (`GEMINI_API_KEY`).
   The client never sees it.
-- The Netlify function verifies the Firebase ID token (`firebase-admin`) and checks the owner UID
+- The Netlify function verifies the Firebase ID token (with `jose`: Google's public keys, RS256,
+  audience, issuer, expiry; `firebase-admin` did not load on Netlify) and checks the owner UID
   before calling Gemini, so nobody else can consume the quota.
 - The Firebase web config is public by design; security relies on the rules. Document this in the README.
 - The Gemini models are configurable: `GEMINI_MODEL` is a comma-separated list, tried in order (fallback
