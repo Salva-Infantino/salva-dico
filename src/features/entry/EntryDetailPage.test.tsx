@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
 import {
@@ -124,5 +124,62 @@ describe('EntryDetailPage actions', () => {
     );
     expect(actions.remove).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
+describe('EntryDetailPage — text-to-speech', () => {
+  /** A Web Speech API stand-in with the given voices. */
+  function installSpeech(voices: { lang: string; localService: boolean }[]) {
+    const speech = {
+      getVoices: vi.fn(() => voices),
+      speak: vi.fn<(utterance: { text: string; lang: string }) => void>(),
+      cancel: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal('speechSynthesis', speech);
+    vi.stubGlobal(
+      'SpeechSynthesisUtterance',
+      class {
+        text: string;
+        lang = '';
+        voice: unknown = null;
+        rate = 1;
+        constructor(text: string) {
+          this.text = text;
+        }
+      },
+    );
+    return speech;
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('reads a word aloud with a voice of its language', async () => {
+    const speech = installSpeech([
+      { lang: 'en-GB', localService: true },
+      { lang: 'en-US', localService: true },
+    ]);
+    renderWithEntries(entries, '/entries/arbre');
+    await userEvent.click(
+      within(card('Anglais')).getByRole('button', { name: fr.entry.speak('tree') }),
+    );
+    expect(speech.cancel).toHaveBeenCalled();
+    expect(speech.speak).toHaveBeenCalledWith(
+      expect.objectContaining({ text: 'tree', lang: 'en-US' }),
+    );
+  });
+
+  it('hides the button when no voice speaks the language', () => {
+    installSpeech([{ lang: 'en-US', localService: true }]);
+    renderWithEntries(entries, '/entries/arbre');
+    expect(within(card('Italien')).queryByRole('button', { name: /Écouter/ })).toBeNull();
+  });
+
+  it('hides every button without the Web Speech API', () => {
+    renderWithEntries(entries, '/entries/arbre');
+    expect(screen.queryByRole('button', { name: /Écouter/ })).toBeNull();
   });
 });

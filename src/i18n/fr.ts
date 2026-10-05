@@ -55,6 +55,7 @@ export const fr = {
     delete: 'Supprimer',
     deleteTitle: 'Supprimer cette entrée ?',
     deleteText: 'Elle sera supprimée sur tous tes appareils.',
+    speak: (word: string) => `Écouter « ${word} »`,
   },
   ai: {
     modes: { ai: 'Avec l’IA', manual: 'Manuel' },
