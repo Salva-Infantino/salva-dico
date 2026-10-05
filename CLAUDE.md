@@ -198,10 +198,12 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - Swipe right = "je connais", swipe left = "à réviser". Swiping is allowed without flipping.
 - Knowledge is **global per entry**: one unknown language means the whole entry goes to "à réviser".
 - "À réviser" cards come back **once** at the end of the session, then the session ends.
-- Nothing is persisted between sessions except the manual mastered switch. No stats.
+- Nothing is persisted between sessions except the manual mastered switch (and the last quiz settings,
+  per device). No stats history.
 - **Desktop controls:** mouse drag to swipe, plus keyboard: `←` / `→` to swipe, `Space` to flip all,
   `1` / `2` / `3` to flip a single card.
-- Simple end screen, then back to the dictionary or a new quiz.
+- End screen with an animated score (ring + count-up, skipped with reduced motion): entries known on the
+  first try / cards of the session. Then back to the dictionary or a new quiz.
 
 ### 7.5 Settings
 - Export the whole dictionary as JSON; import a JSON export (validated with Zod, with a preview before writing).
@@ -268,6 +270,10 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - Step 6 (AI): in progress. Netlify function and review screen done; verbs are generated in several
   requests (entry, then one per conjugation) to avoid Gemini's recitation filter, with retries and model
   fallback. Remaining: manual check against the real Gemini API.
+- Step 7 (Quiz): **done** (2026-10-05). `/quiz` (settings, remembered in localStorage) and `/quiz/session`
+  (in memory only: a reload goes back to the settings). Pure session reducer in `src/domain/quiz.ts`.
+  Swipe with Pointer Events (no dependency), buttons and keyboard; answers are ignored during the 200 ms
+  exit animation so an unseen card is never answered. Score = known on the first try.
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
