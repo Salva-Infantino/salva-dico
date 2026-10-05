@@ -8,8 +8,8 @@ A personal, offline-first PWA to build a **four-language vocabulary dictionary**
 
 ## Features (planned)
 
-- Every entry exists in all four languages at once, with grammar details (gender, plurals,
-  adjective forms, verb conjugations).
+- Every entry exists in all four languages at once: a word (or expression), or a verb with its
+  full conjugation.
 - Fast accent- and article-insensitive search across the four languages.
 - AI-assisted entry creation (Google Gemini, called from a serverless function).
 - Swipe quiz with touch, mouse and keyboard controls.

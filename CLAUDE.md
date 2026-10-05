@@ -63,8 +63,9 @@ No UI framework unless we agree otherwise. Theme follows the system (`prefers-co
 - The Netlify function verifies the Firebase ID token (`firebase-admin`) and checks the owner UID
   before calling Gemini, so nobody else can consume the quota.
 - The Firebase web config is public by design; security relies on the rules. Document this in the README.
-- The Gemini model name is configurable (`GEMINI_MODEL` env var). Check current Gemini docs for the
-  available free-tier models and structured-output API before implementing; do not rely on memory.
+- The Gemini models are configurable: `GEMINI_MODEL` is a comma-separated list, tried in order (fallback
+  on quota exhaustion or overload). Check current Gemini docs for the available free-tier models and
+  structured-output API before implementing; do not rely on memory.
 
 ## 5. Data model
 
@@ -72,7 +73,7 @@ All entries live in `users/{uid}/entries/{entryId}`. Sketch (refine with Zod dur
 
 ```ts
 type Lang = 'fr' | 'en' | 'es' | 'it';
-type EntryType = 'noun' | 'verb' | 'adjective' | 'expression';
+type EntryType = 'word' | 'verb';
 
 interface Entry {
   id: string;
@@ -89,12 +90,8 @@ interface Entry {
 Several translations per language are allowed and **all have equal weight** (no "main" translation).
 The shape of a `Translation` depends on the entry type:
 
-- **expression:** `{ text }`
-- **noun:** `{ text, gender?: 'm' | 'f', article?, plural?, pluralArticle? }`
-  - FR / ES / IT: gender, singular article and plural are filled (ex. IT: `il ragazzo` / `i ragazzi`).
-  - EN: no gender or article; `plural` only when irregular (mouse → mice).
-- **adjective:** FR / ES / IT: 4 forms `{ mascSing, femSing, mascPlural, femPlural }`
-  (identical forms allowed, ex. IT `grande / grande / grandi / grandi`). EN: single form.
+- **word:** `{ text }`. Any noun, adjective, adverb or multi-word expression, in its dictionary form
+  (singular, masculine, no article: `garçon`, `grand`, `s'il vous plaît`). No gender, article or plural.
 - **verb:** `{ text (infinitive), reflexive?: boolean, conjugation }` where `conjugation` depends on the language:
 
 ```ts
@@ -125,12 +122,12 @@ Decisions behind this model:
 - The Zod schemas in `src/domain/schemas.ts` are the source of truth; this section is a summary.
 - Domain timestamps are epoch milliseconds (`number`); conversion to Firestore `Timestamp` lives in the
   Firebase layer only.
-- Nouns: `text` is the bare noun, articles are separate fields (`l'` + `arbre`). FR / ES / IT require
-  `gender` and `article`; `plural` + `pluralArticle` are optional (uncountable nouns) but go together.
+- Only two types (owner's choice, 2026-10-05): grammar details (gender, articles, plurals, feminine and
+  adjective forms) are deliberately not stored. Only verbs carry extra data, their conjugation.
 - Verbs: `text` is the infinitive as displayed, including the reflexive form (`se lever`, `alzarsi`);
   EN `text` is the bare infinitive (`go`, not `to go`). Conjugated forms are stored without subject pronouns.
 - Search and duplicate detection ignore case, accents, punctuation, a leading article, and verb markers
-  (`to`, `se`/`s'`, `-se`, `-si`). Duplicates compare whole words (all adjective forms), search ranks
+  (`to`, `se`/`s'`, `-se`, `-si`). Duplicates compare whole words, search ranks
   exact > prefix > word prefix > substring.
 - No literary tenses: no French *passé simple*, no Italian *passato remoto*.
 - No standalone past participle for FR / ES / IT: it is visible in the compound past.
@@ -162,13 +159,13 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 ### 7.1 Dictionary (home)
 - One search bar that searches the 4 languages at once, with language filter chips (🇫🇷 🇬🇧 🇪🇸 🇮🇹, bundled SVG flags).
 - Search is case-insensitive, accent-insensitive, and ignores articles.
-- Type filter (noun / verb / adjective / expression).
+- Type filter (word / verb).
 - Compact list; each row shows the entry in the 4 languages with flags.
 
 ### 7.2 Entry detail
 - The 4 languages on **one screen**, each with its flag.
-- Grammar details (gender, article, plural endings, adjective forms) are shown **discreetly**:
-  lighter font weight or italic, so the main word stands out.
+- Secondary details (English past forms of verbs) are shown **discreetly**: lighter font weight or italic,
+  so the main word stands out.
 - **Verbs:** the 4 infinitives side by side. Tapping one opens that language's conjugation
   (all its tenses). Conjugations are never compared across languages.
 - Text-to-speech button per translation (Web Speech API). Hide it when no voice is available for that language.
@@ -180,8 +177,8 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - **Duplicate check:** before saving (and before calling the AI), if the typed word already exists in that
   language (normalized comparison), warn and offer to open the existing entry.
 - **AI mode:** I type a word in one language (type is optional; the AI detects it and I can change it).
-  The function returns a **complete** entry: translations in the 3 other languages, type, gender, articles,
-  plurals, adjective forms, full conjugations. The result opens in a **review screen where every field is
+  The function returns a **complete** entry: translations in the 3 other languages, type and, for verbs,
+  full conjugations. The result opens in a **review screen where every field is
   editable**. Nothing is saved until I validate.
 - **Manual mode:** same form, all fields editable, including every conjugation cell.
 - Validation: at least one translation in each of the 4 languages is required.
@@ -190,7 +187,7 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 **Setup screen**, in this order:
 1. Source language (one of the 4).
 2. Target languages: one, two or all three of the others.
-3. Type filters (noun / verb / adjective / expression).
+3. Type filters (word / verb).
 4. Exclude mastered entries (on/off).
 5. Order: random, or most recently added first.
 6. Number of cards (fixed for the session).
@@ -222,7 +219,8 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - Verifies the token and owner UID, then calls Gemini with a **structured JSON output schema**.
 - The response is validated with the same Zod schema as entries; on invalid output, return a clear error.
 - The prompt must enforce: Spain Spanish, American English, the exact tenses of section 5, compound pasts with
-  agreement, no literary tenses, several translations only when meanings genuinely differ.
+  agreement, no literary tenses, words in their dictionary form without article, several translations only
+  when meanings genuinely differ.
 - Errors (quota, network, invalid output) are shown to me in French, without losing what I typed.
 - Unit-test the function with a mocked Gemini client.
 
@@ -264,7 +262,12 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   (`/entries/:id/conjugation/:lang/:index`), native tense names with the French equivalent, pronouns added
   at display (French "j'" elision). Verbs are editable: one collapsible section per tense, sections with
   errors reopen on save. No regular-verb generator (owner's choice: the AI of step 6 fills conjugations).
-- Next step: 6 (AI).
+- Data model simplified (2026-10-05): only `word` and `verb` types, no gender, articles, plurals or
+  adjective forms (grammar hints and their editor fields removed). Production data restarted from zero;
+  documents of the old types are rejected by the rules and skipped by the sync.
+- Step 6 (AI): in progress. Netlify function and review screen done; verbs are generated in several
+  requests (entry, then one per conjugation) to avoid Gemini's recitation filter, with retries and model
+  fallback. Remaining: manual check against the real Gemini API.
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
