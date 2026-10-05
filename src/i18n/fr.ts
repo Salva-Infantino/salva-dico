@@ -216,7 +216,6 @@ export const fr = {
     pastParticiple: 'Past participle',
   },
   notifications: {
-    label: 'Notifications',
     close: 'Fermer',
     added: 'Entrée ajoutée.',
     updated: 'Entrée modifiée.',

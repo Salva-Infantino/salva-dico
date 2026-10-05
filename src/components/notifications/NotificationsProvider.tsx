@@ -33,7 +33,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   return (
     <NotificationsContext value={notify}>
       {children}
-      <div className="toasts" aria-label={fr.notifications.label}>
+      {/* No label: each toast is announced through its own status or alert role. */}
+      <div className="toasts">
         {notifications.map((n) => (
           <Toast key={n.id} notification={n} onDismiss={dismiss} />
         ))}

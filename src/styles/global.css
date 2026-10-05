@@ -371,6 +371,13 @@ button.chip[aria-pressed='true'] {
   flex-basis: 100%;
 }
 
+/* Short infinitives ("ir") still get a comfortable target (WCAG 2.5.8: 24 × 24 px minimum). */
+.translation-list a.headword {
+  display: inline-block;
+  min-width: 2rem;
+  padding-block: var(--space-1);
+}
+
 /* Icon button, with a 44px touch target. */
 button.speak-button {
   display: inline-grid;
