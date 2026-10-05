@@ -46,6 +46,7 @@ improve all four languages together, so an entry is only "known" if it is known 
 | Validation | Zod (shared schemas for entries and AI responses) |
 | Unit / component tests | Vitest + React Testing Library |
 | E2E tests | Playwright on Chromium, Firefox, WebKit + mobile emulation (including an offline scenario) |
+| Accessibility tests | `@axe-core/playwright` (WCAG 2.2 AA, every screen, light and dark themes) |
 | Security rules tests | Firebase Emulator Suite + `@firebase/rules-unit-testing` |
 | Lint / format | ESLint + Prettier |
 | CI | GitHub Actions: typecheck, lint, unit tests, rules tests, build on every push/PR |
@@ -144,7 +145,10 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 
 ## 6. Sync and offline strategy
 
-- Firestore persistent local cache with multi-tab support. The app reads from the local cache first.
+- Firestore persistent local cache with multi-tab support. The app reads from the local cache first:
+  a cache-only listener (`source: 'cache'`) on the whole collection is the single source of the entries,
+  so pending offline writes are visible at once (a pending server timestamp does not match the delta
+  query locally).
 - **Cost-aware delta sync (important):** the dictionary will grow to several thousand entries and the free tier
   has a daily read quota. Do **not** re-listen to the whole collection on every app open. Load entries from the
   local cache, then listen only to documents with `updatedAt > lastSyncedAt`. Deletions are soft (`deleted: true`)
@@ -279,6 +283,14 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   language: dictionary variety, then device voices), hidden without a voice. Settings page `/settings`
   (gear next to "Quiz"): JSON export (`salva-dico-YYYY-MM-DD.json`, versioned format in
   `src/domain/backup.ts`), import with preview, batched writes keeping ids and creation dates, sign-out.
+- Step 9 (Polish): **done** (2026-10-05). Offline E2E test (Chromium only: service workers), which found
+  and fixed offline writes being invisible while the sync ran (now a cache-only listener). axe audit of
+  every screen in both themes; focus moves to the page heading after navigation and the tab title names
+  the page; `lang` on words. README rewritten for the portfolio, screenshots from `pnpm docs:screenshots`,
+  MIT license.
+- Roadmap complete. Remaining before daily use in production: deploy on Netlify (environment variables
+  of `.env.example`, `GEMINI_MODEL` fallback list, auth domain) and check redirect sign-in through the
+  `/__/auth` proxy (see step 2).
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
