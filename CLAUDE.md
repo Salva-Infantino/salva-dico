@@ -207,6 +207,7 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 
 ### 7.5 Settings
 - Export the whole dictionary as JSON; import a JSON export (validated with Zod, with a preview before writing).
+  Import never overwrites: entries whose id already exists are ignored (a deleted entry is restored).
 - Sign out.
 
 ## 8. UI guidelines
@@ -274,6 +275,10 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   (in memory only: a reload goes back to the settings). Pure session reducer in `src/domain/quiz.ts`.
   Swipe with Pointer Events (no dependency), buttons and keyboard; answers are ignored during the 200 ms
   exit animation so an unseen card is never answered. Score = known on the first try.
+- Step 8 (Extras): **done** (2026-10-05). Speak button per translation on the entry detail (best voice per
+  language: dictionary variety, then device voices), hidden without a voice. Settings page `/settings`
+  (gear next to "Quiz"): JSON export (`salva-dico-YYYY-MM-DD.json`, versioned format in
+  `src/domain/backup.ts`), import with preview, batched writes keeping ids and creation dates, sign-out.
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
