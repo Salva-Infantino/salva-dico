@@ -27,6 +27,19 @@ describe('parseServerEnv', () => {
     expect(() => parseServerEnv({ ...env, GEMINI_MODEL: ' , ' })).toThrow(/GEMINI_MODEL/);
   });
 
+  it('refuses the Auth emulator host with a real project (token signatures unchecked)', () => {
+    expect(() => parseServerEnv({ ...env, FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099' })).toThrow(
+      /FIREBASE_AUTH_EMULATOR_HOST/,
+    );
+    expect(
+      parseServerEnv({
+        ...env,
+        FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+        VITE_FIREBASE_PROJECT_ID: 'demo-salva-dico',
+      }).projectId,
+    ).toBe('demo-salva-dico');
+  });
+
   it('names missing variables without echoing secrets', () => {
     expect(() => parseServerEnv({ OWNER_UID: 'owner' })).toThrow(/GEMINI_API_KEY/);
     expect(() => parseServerEnv({ GEMINI_API_KEY: 'key', OWNER_UID: 'o' })).toThrow(

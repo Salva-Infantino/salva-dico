@@ -21,6 +21,8 @@ const serverEnvSchema = z.object({
   // The client config already holds the project id; FIREBASE_PROJECT_ID overrides it.
   FIREBASE_PROJECT_ID: z.string().min(1).optional(),
   VITE_FIREBASE_PROJECT_ID: z.string().min(1).optional(),
+  /** Set by the local dev server only: firebase-admin then trusts Auth emulator tokens. */
+  FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
 });
 
 export interface ServerEnv {
@@ -38,6 +40,14 @@ export function parseServerEnv(env: Record<string, string | undefined>): ServerE
       ? 'FIREBASE_PROJECT_ID'
       : result.error.issues.map((issue) => issue.path.join('.')).join(', ');
     throw new Error(`Invalid server configuration: ${missing}`);
+  }
+  // With FIREBASE_AUTH_EMULATOR_HOST, firebase-admin skips the token signature check:
+  // anyone could forge a token for the (public) owner UID. Only allowed with a demo
+  // project, which exists in the emulators only and can never be a real project.
+  if (result.data.FIREBASE_AUTH_EMULATOR_HOST && !projectId.startsWith('demo-')) {
+    throw new Error(
+      'Invalid server configuration: FIREBASE_AUTH_EMULATOR_HOST must not be set for a real project',
+    );
   }
   return {
     geminiApiKey: result.data.GEMINI_API_KEY,
