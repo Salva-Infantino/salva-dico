@@ -84,13 +84,21 @@ call the backend".
   function verifies the Firebase ID token with `firebase-admin` and checks the owner UID **before**
   calling Gemini, so nobody else can spend the quota. Its answers are validated with the same Zod
   schemas as the entries, and errors are mapped to a fixed list of codes (no internal details leak).
+  The function is **rate limited** per IP (Netlify code-based rule), and refuses to start if
+  `FIREBASE_AUTH_EMULATOR_HOST` is set for a real project: `firebase-admin` would then skip the
+  token signature check, and the owner UID is public.
+- **API keys are restricted in Google Cloud:** the public Firebase key only to the Firebase APIs
+  and the site's referrers (never the Gemini API, which an unrestricted key in the same project
+  could call), the Gemini key only to the Gemini API.
 - **Content-Security-Policy** (`csp.ts`): strict policy injected at build time, without
   `unsafe-inline` or `unsafe-eval`. E2E tests fail on any CSP violation.
 - **HTTP headers** (`netlify.toml`): HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
   `X-Frame-Options`.
 - **Supply chain** (`pnpm-workspace.yaml`): only versions published at least 7 days ago,
   `trustPolicy: no-downgrade`, no git or tarball sub-dependencies, no install script unless
-  reviewed. GitHub Actions are pinned to commit SHAs and the CI token is read-only.
+  reviewed. GitHub Actions are pinned to commit SHAs and the CI token is read-only. `pnpm audit`
+  findings are reviewed: a vulnerable `@grpc/grpc-js` pinned by Firestore (Node only) is overridden;
+  a `uuid` advisory in `firebase-admin`'s unused Storage module is accepted.
 
 ## Offline and sync strategy
 
