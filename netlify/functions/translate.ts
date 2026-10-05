@@ -30,4 +30,9 @@ export default async (request: Request): Promise<Response> => {
   }
 };
 
-export const config: Config = { path: TRANSLATE_PATH };
+export const config: Config = {
+  path: TRANSLATE_PATH,
+  // Per visitor IP: far above personal use (one AI request takes several seconds), low
+  // enough to cap the function invocations an anonymous script could burn.
+  rateLimit: { windowLimit: 20, windowSize: 60, aggregateBy: ['ip', 'domain'] },
+};
