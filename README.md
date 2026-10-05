@@ -1,33 +1,153 @@
 # Salva Dico
 
 A personal, offline-first PWA to build a **four-language vocabulary dictionary**
-(French, English, Spanish, Italian) and review it with a swipe quiz.
+(French, English, Spanish, Italian) and review it with a swipe quiz. Every entry exists in the four
+languages at once, because the goal is to learn them together.
 
-> 🚧 Work in progress. This README is a skeleton and will be completed as the project grows
-> (architecture diagram, security model, offline/sync strategy).
+I use it every day on my phone and on desktop. It is also a portfolio project: the code, the
+security model, the tests and the CI matter as much as the features.
 
-## Features (planned)
+<p>
+  <img src="docs/screenshots/dictionary.png" alt="Dictionary: each entry in French, English, Spanish and Italian, with flags, a search bar and filters" width="100%">
+</p>
+<p>
+  <img src="docs/screenshots/conjugation.png" alt="Spanish conjugation of levantarse in dark theme: six tenses and the imperative" width="58%">
+  <img src="docs/screenshots/quiz-phone.png" alt="Quiz card on a phone: se lever, with English and Italian answers turned face up" width="19%">
+  <img src="docs/screenshots/score-phone.png" alt="End of a quiz on a phone, dark theme: a 100 % score ring" width="19%">
+</p>
 
-- Every entry exists in all four languages at once: a word (or expression), or a verb with its
-  full conjugation.
-- Fast accent- and article-insensitive search across the four languages.
-- AI-assisted entry creation (Google Gemini, called from a serverless function).
-- Swipe quiz with touch, mouse and keyboard controls.
-- Works offline; data synced between devices with Firestore.
+## Features
 
-## Tech stack
+- **Dictionary in four languages:** a word (or expression), or a verb with its full conjugation in
+  French, Spanish (Spain) and Italian, plus the English past forms.
+- **Search** across the four languages at once, insensitive to case, accents, articles and verb
+  markers (`to go`, `se lever`, `levantarse`), ranked exact > prefix > word prefix > substring.
+- **AI-assisted entries:** type a word in any language, Google Gemini fills in the other three
+  languages and the conjugations, and everything is reviewed and editable before saving.
+- **Swipe quiz:** touch, mouse and keyboard; cards to review come back once at the end; animated
+  score.
+- **Offline first:** reading, searching, adding, editing and the quiz all work without network;
+  changes sync between devices when it comes back.
+- **Text-to-speech** per translation, **JSON export / import** with a preview, light and dark
+  themes following the system.
 
-| Concern         | Choice                                            |
-| --------------- | ------------------------------------------------- |
-| UI              | React + TypeScript (strict)                       |
-| Build / PWA     | Vite, `vite-plugin-pwa` (Workbox)                 |
-| Routing         | React Router                                      |
-| Auth / database | Firebase Authentication (Google), Cloud Firestore |
-| AI              | Google Gemini API, via a Netlify Function         |
-| Hosting         | Netlify                                           |
-| Tests           | Vitest + React Testing Library, Playwright        |
-| Quality         | ESLint (type-aware), Prettier, GitHub Actions CI  |
-| Package manager | pnpm, with supply-chain hardening (see below)     |
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Device["Browser on phone or desktop (installable PWA)"]
+    SW["Service worker<br/>precached app shell"]
+    UI["React UI<br/>(French)"] --> Domain["Domain<br/>Zod schemas, search, quiz"]
+    UI --> Data["Data layer<br/>sync and writes"]
+    Data <--> Cache[("Firestore local cache<br/>IndexedDB")]
+  end
+  Cache <-->|"delta query<br/>updatedAt > cursor"| Firestore[("Cloud Firestore<br/>owner-only rules")]
+  UI -->|"Google sign-in"| Auth["Firebase Auth"]
+  UI -->|"POST /api/translate<br/>+ Firebase ID token"| Fn["Netlify Function<br/>translate"]
+  Fn -->|"verify token, check owner"| Auth
+  Fn -->|"structured JSON output"| Gemini["Gemini API"]
+```
+
+| Layer           | Where                                     | Notes                                                                  |
+| --------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
+| Domain (pure)   | `src/domain/`                             | Zod schemas (source of truth), search, duplicates, quiz, export format |
+| Data (Firebase) | `src/data/`                               | Delta sync, writes, Firestore ↔ domain conversion                      |
+| UI              | `src/features/`, `src/components/`        | One folder per screen; all UI strings in `src/i18n/fr.ts`              |
+| AI function     | `server/translate/`, `netlify/functions/` | Framework-free handler, unit-tested with a mocked Gemini client        |
+| Security rules  | `firestore.rules`                         | Tested on the emulator                                                 |
+
+| Concern         | Choice                                                             |
+| --------------- | ------------------------------------------------------------------ |
+| UI              | React 19 + TypeScript (strict), plain CSS with custom properties   |
+| Build / PWA     | Vite, `vite-plugin-pwa` (Workbox)                                  |
+| Routing         | React Router (data router)                                         |
+| Auth / database | Firebase Authentication (Google), Cloud Firestore                  |
+| AI              | Google Gemini API, via a Netlify Function                          |
+| Validation      | Zod, shared by the client, the function and the import             |
+| Tests           | Vitest + Testing Library, Playwright, axe-core, Firebase emulators |
+| Quality         | ESLint (type-aware), Prettier, GitHub Actions CI                   |
+| Package manager | pnpm, with supply-chain hardening                                  |
+
+## Security model
+
+It is a single-user app on a public repository: the threat model is "anyone can read the code and
+call the backend".
+
+- **Authorization lives in the Firestore rules** (`firestore.rules`), not in the client. Only the
+  owner's UID can read or write, and only under `users/{uid}/entries`. Rules also validate the
+  document structure, force `updatedAt` to the server time, keep `createdAt` immutable and forbid
+  hard deletes. Any other account gets an "access denied" screen.
+- **The Firebase web config is public by design.** Every `VITE_` variable ends up in the bundle; the
+  API key only identifies the project. The owner UID is a literal in the rules: not a secret, and
+  rules cannot read environment variables.
+- **The Gemini API key never reaches the client.** It only lives in the Netlify environment. The
+  function verifies the Firebase ID token with `firebase-admin` and checks the owner UID **before**
+  calling Gemini, so nobody else can spend the quota. Its answers are validated with the same Zod
+  schemas as the entries, and errors are mapped to a fixed list of codes (no internal details leak).
+- **Content-Security-Policy** (`csp.ts`): strict policy injected at build time, without
+  `unsafe-inline` or `unsafe-eval`. E2E tests fail on any CSP violation.
+- **HTTP headers** (`netlify.toml`): HSTS, `nosniff`, `Referrer-Policy`, `Permissions-Policy`,
+  `X-Frame-Options`.
+- **Supply chain** (`pnpm-workspace.yaml`): only versions published at least 7 days ago,
+  `trustPolicy: no-downgrade`, no git or tarball sub-dependencies, no install script unless
+  reviewed. GitHub Actions are pinned to commit SHAs and the CI token is read-only.
+
+## Offline and sync strategy
+
+Firestore's free tier allows 50,000 document reads per day, and the dictionary will hold thousands of
+entries. Re-listening to the whole collection on every app start would burn that quota, so the sync
+is **delta-based** (`src/data/entriesSync.ts`), with two listeners:
+
+1. A **cache-only listener** on the whole collection is the single source of the entries. It reads
+   Firestore's persistent local cache (IndexedDB): free, instant, offline. It also sees local writes
+   at once, including offline ones.
+2. A **server listener** only on documents whose **server** `updatedAt` is after a stored cursor.
+   It feeds the local cache. An app start with no remote change costs one read instead of one per
+   entry.
+
+Details and safeguards:
+
+- `updatedAt` is always a server timestamp (enforced by the rules), so a wrong device clock cannot
+  hide a change. The cursor keeps nanosecond precision and only advances on server-confirmed data.
+- **Deletions are soft** (`deleted: true`) so they travel through the delta query.
+- Offline writes are applied to the local cache immediately and queued by Firestore.
+- Why two listeners: a pending server timestamp does not match `updatedAt > cursor` locally, so a
+  single delta listener would hide offline writes until reconnection. The offline E2E test found
+  this; an emulator test now reproduces it.
+- The cache must never evict synced entries: cache garbage collection is disabled and the app asks
+  for persistent storage. If the cache is empty while a cursor exists (site data cleared), the app
+  falls back to a full sync.
+- The service worker precaches the app shell; the AI button is disabled offline (no queued AI
+  requests).
+
+## AI design
+
+The function (`server/translate/`) asks Gemini for **structured JSON output** with a schema derived
+from the Zod schemas (`z.toJSONSchema`), then validates the answer with Zod again.
+
+- **The prompt** enforces Spain Spanish (vosotros), American English, the exact tenses of the data
+  model, compound pasts with agreement, no literary tenses, and dictionary forms (no article).
+- **Verbs are generated in several requests**: the entry first, then one request per conjugation,
+  in parallel. Asking for three full conjugation tables at once trips Gemini's recitation filter
+  (empty answer).
+- **Resilience**: retries on overload or blocked answers, then **fallback models**
+  (`GEMINI_MODEL` is a comma-separated list), and a time limit under Netlify's 60 s.
+- Errors are shown in French in the app, without losing what was typed. Nothing is saved before the
+  review screen is validated.
+
+## Testing strategy
+
+| Level          | Tool                                                  | What it covers                                                                                        |
+| -------------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Unit           | Vitest                                                | Schemas, search, duplicates, quiz reducer, export format, voice selection, AI handler (mocked Gemini) |
+| Component      | Vitest + Testing Library                              | Every screen: forms, validation, quiz controls, import preview, focus management                      |
+| Rules and sync | Firebase emulator + `rules-unit-testing`              | Owner-only access, structural validation, delta sync, offline writes, import                          |
+| End to end     | Playwright (Chromium, Firefox, WebKit, Pixel, iPhone) | Real production build with service worker and CSP, on seeded emulators                                |
+| Offline        | Playwright                                            | Offline reload, search, add, master, quiz, then sync to a second device                               |
+| Accessibility  | `@axe-core/playwright`                                | WCAG 2.2 AA on every screen, light and dark themes                                                    |
+
+CI (GitHub Actions) runs three jobs on every push and pull request: typecheck, lint, format, unit
+tests and build; the emulator tests; the E2E tests.
 
 ## Getting started
 
@@ -40,11 +160,14 @@ pnpm exec playwright install   # browsers for E2E tests, first time only
 ```
 
 **Local development without touching real data** (recommended): runs the app against the Firebase
-emulators, seeded with ~25 realistic entries. Use the "Connexion de dev (émulateur)" button to sign in.
+emulators, seeded with ~25 realistic entries. Use the "Connexion de dev (émulateur)" button.
 
 ```sh
 pnpm dev:emulators             # app on http://localhost:5173, emulator UI on http://localhost:4000
 ```
+
+The AI also works locally: put `GEMINI_API_KEY` and `OWNER_UID` in `.env.local` (see
+`.env.example`); the Vite dev server serves the function on `/api/translate`.
 
 To seed thousands of synthetic entries for performance checks:
 `firebase emulators:exec --only firestore,auth --project demo-salva-dico --ui 'node scripts/seed-emulator.ts --bulk 3000 && vite --mode emulator'`.
@@ -54,76 +177,42 @@ then run `pnpm dev`.
 
 ## Scripts
 
-| Command              | Description                                                             |
-| -------------------- | ----------------------------------------------------------------------- |
-| `pnpm dev`           | Start the dev server                                                    |
-| `pnpm build`         | Typecheck and build for production                                      |
-| `pnpm preview`       | Serve the production build locally                                      |
-| `pnpm typecheck`     | Run the TypeScript compiler                                             |
-| `pnpm lint`          | Lint with ESLint                                                        |
-| `pnpm format`        | Format with Prettier (`format:check` to verify only)                    |
-| `pnpm test`          | Unit and component tests (Vitest)                                       |
-| `pnpm test:e2e`      | E2E tests (Playwright: Chromium, Firefox, WebKit, mobile)               |
-| `pnpm test:emulator` | Security rules and sync tests on the Firestore emulator (needs Java 21) |
-| `pnpm emulators`     | Start the Firebase emulators with their UI on port 4000                 |
+| Command                 | Description                                                             |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `pnpm dev`              | Start the dev server                                                    |
+| `pnpm dev:emulators`    | Dev server on seeded Firebase emulators                                 |
+| `pnpm build`            | Typecheck and build for production                                      |
+| `pnpm preview`          | Serve the production build locally                                      |
+| `pnpm typecheck`        | Run the TypeScript compiler                                             |
+| `pnpm lint`             | Lint with ESLint                                                        |
+| `pnpm format`           | Format with Prettier (`format:check` to verify only)                    |
+| `pnpm test`             | Unit and component tests (Vitest)                                       |
+| `pnpm test:emulator`    | Security rules and sync tests on the Firestore emulator (needs Java 21) |
+| `pnpm test:e2e`         | E2E, offline and accessibility tests (Playwright, on seeded emulators)  |
+| `pnpm docs:screenshots` | Regenerate the README screenshots from the demo data                    |
+| `pnpm emulators`        | Start the Firebase emulators with their UI on port 4000                 |
 
-## Security
+## Deployment (Netlify)
 
-### Dependencies (supply chain)
+1. Create the site from the repository: `netlify.toml` sets the build, the functions and the headers.
+2. Set the environment variables (see `.env.example`):
+   - `VITE_FIREBASE_*`: the Firebase web config, with `VITE_FIREBASE_AUTH_DOMAIN` set to the site's
+     own domain (sign-in goes through the `/__/auth` proxy of `netlify.toml`);
+   - `OWNER_UID`, `GEMINI_API_KEY`, and optionally `GEMINI_MODEL` (comma-separated fallback list).
+3. In the Firebase console, add the site's domain to the Auth authorized domains.
+4. Deploy the rules: `pnpm exec firebase deploy --only firestore`.
 
-`pnpm-workspace.yaml` hardens dependency installation:
+## Decisions and trade-offs
 
-- `minimumReleaseAge`: only versions published at least 7 days ago are installed.
-- `trustPolicy: no-downgrade`: a version with weaker trust evidence than a previous one is refused
-  (possible package takeover). Each exception is pinned to an exact version and justified.
-- `blockExoticSubdeps`: transitive dependencies cannot come from git or tarball URLs.
-- `strictDepBuilds` + empty `allowBuilds`: no dependency install script runs unless reviewed.
-
-GitHub Actions are pinned to full commit SHAs and the CI token is read-only.
-
-### Application
-
-- **Authentication:** Google sign-in only (Firebase Authentication). The session persists per device
-  and works offline.
-- **Authorization lives in the Firestore rules** (`firestore.rules`), not in the client. Only the owner's
-  UID can read or write, and only under `users/{uid}/entries`. Any other account gets an "access denied"
-  screen. The owner UID is a literal in the rules: it is not a secret, and rules cannot read environment
-  variables.
-- **The Firebase web config is public by design.** Every `VITE_` variable ends up in the bundle; the API key
-  only identifies the project. Security comes from the rules, which are tested on the emulator
-  (`tests/emulator/firestore.rules.test.ts`): owner-only access, structural validation, server-side
-  `updatedAt`, immutable `createdAt`, no hard deletes.
-- **Content-Security-Policy** (`csp.ts`): strict policy injected as a `<meta>` tag at build time, without
-  `unsafe-inline` or `unsafe-eval`. E2E tests fail on any CSP violation in Chromium, Firefox and WebKit.
-- **Secrets** (Gemini API key, step 6) only live in Netlify environment variables, never in the client.
-
-## Offline and sync strategy
-
-Firestore's free tier allows 50,000 document reads per day, and the dictionary will hold thousands of
-entries. Re-listening to the whole collection on every app start would burn that quota, so the sync is
-**delta-based** (`src/data/entriesSync.ts`):
-
-1. On start, every entry is read from Firestore's **persistent local cache** (IndexedDB): instant, free,
-   works offline.
-2. A single listener then fetches only documents whose **server** `updatedAt` is after a stored cursor.
-   An app start with no remote change costs one read instead of one per entry.
-3. `updatedAt` is always a server timestamp (enforced by the rules), so a wrong device clock cannot make
-   a change invisible. The cursor keeps nanosecond precision and only advances on server-confirmed data.
-4. **Deletions are soft** (`deleted: true`) so they travel through the delta query; hard deletes are
-   forbidden by the rules.
-5. Offline writes are applied to the local cache immediately and queued by Firestore until reconnection.
-
-Trade-offs and safeguards:
-
-- The cache must never evict synced entries, so cache garbage collection is disabled
-  (`CACHE_SIZE_UNLIMITED`) and the app asks the browser for persistent storage.
-- If the cache is empty while a cursor exists (for example, Safari cleared site data), the app falls back
-  to a full sync instead of silently missing entries.
-- Tombstones stay in the database; a purge can be added later if needed.
-
-These behaviors are covered by end-to-end tests against the Firestore emulator
-(`tests/emulator/entriesSync.test.ts`).
+- **Only two entry types (word, verb).** Grammar details (gender, articles, plurals, adjective forms)
+  were dropped to keep daily input fast; only verbs carry extra data.
+- **Single user, no backend of my own.** Firestore rules are the authorization layer; the only
+  server code is the AI function, which must hide the API key.
+- **No UI framework, no state library.** Plain CSS with custom properties, React context and pure
+  domain functions are enough at this size, and keep the bundle small.
+- **Swipe without a gesture library:** Pointer Events give touch and mouse in one code path.
+- **Tombstones are never purged** yet: a purge can be added if the collection grows too much.
 
 ## License
 
-Personal project. All rights reserved.
+[MIT](LICENSE)
