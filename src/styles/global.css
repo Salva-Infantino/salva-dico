@@ -1093,8 +1093,25 @@ button.quiz-target[aria-pressed='true'] {
 
 .quiz-actions {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
+}
+
+/* Phones: "Tout retourner" on its own row, so the two answers get the full width. */
+.quiz-actions > .secondary {
+  grid-column: 1 / -1;
+  order: -1;
+}
+
+@media (min-width: 30rem) {
+  .quiz-actions {
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .quiz-actions > .secondary {
+    grid-column: auto;
+    order: 0;
+  }
 }
 
 button.quiz-answer {
