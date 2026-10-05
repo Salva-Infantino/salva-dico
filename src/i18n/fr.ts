@@ -120,6 +120,40 @@ export const fr = {
     leave: 'Quitter',
     stay: 'Rester',
   },
+  quiz: {
+    open: 'Quiz',
+    setupTitle: 'Quiz',
+    source: 'Langue affichée',
+    targets: 'Langues à deviner',
+    types: 'Types',
+    excludeMastered: 'Exclure les entrées maîtrisées',
+    order: 'Ordre',
+    orders: { random: 'Aléatoire', recent: 'Plus récentes d’abord' },
+    count: 'Nombre de cartes',
+    countAll: 'Toutes',
+    available: (count: number) =>
+      count === 1 ? '1 entrée disponible' : `${String(count)} entrées disponibles`,
+    none: 'Aucune entrée ne correspond à ces réglages.',
+    start: (count: number) =>
+      count === 1 ? 'Commencer (1 carte)' : `Commencer (${String(count)} cartes)`,
+    quit: 'Quitter',
+    progress: (position: number, size: number) => `Carte ${String(position)} sur ${String(size)}`,
+    reviewProgress: (position: number, size: number) =>
+      `Révision ${String(position)} sur ${String(size)}`,
+    hidden: 'Retourner',
+    flipAll: 'Tout retourner',
+    known: 'Je connais',
+    review: 'À réviser',
+    keyboardHint: '← à réviser · → je connais · Espace : tout retourner · 1, 2, 3 : une carte',
+    doneTitle: 'Session terminée',
+    score: (known: number, total: number) =>
+      `${String(known)} sur ${String(total)} du premier coup`,
+    scoreLabel: (percent: number) => `Score : ${String(percent)} %`,
+    cheer: (percent: number) =>
+      percent >= 90 ? 'Excellent !' : percent >= 60 ? 'Bien joué !' : 'Continue comme ça !',
+    again: 'Nouveau quiz',
+    backHome: 'Retour au dictionnaire',
+  },
   tenses: {
     present: 'présent',
     passeCompose: 'passé composé',

@@ -15,6 +15,18 @@ if (typeof HTMLDialogElement !== 'undefined' && !('showModal' in HTMLDialogEleme
   });
 }
 
+// jsdom does not implement pointer capture (used by the quiz swipe).
+if (typeof Element !== 'undefined' && !('setPointerCapture' in Element.prototype)) {
+  Object.assign(Element.prototype, {
+    setPointerCapture() {
+      // no-op
+    },
+    releasePointerCapture() {
+      // no-op
+    },
+  });
+}
+
 afterEach(() => {
   cleanup();
 });

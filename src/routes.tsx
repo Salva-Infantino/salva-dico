@@ -4,6 +4,8 @@ import { ConjugationPage } from './features/conjugation/ConjugationPage.tsx';
 import { DictionaryPage } from './features/dictionary/DictionaryPage.tsx';
 import { EntryEditorPage } from './features/editor/EntryEditorPage.tsx';
 import { EntryDetailPage } from './features/entry/EntryDetailPage.tsx';
+import { QuizSessionPage } from './features/quiz/QuizSessionPage.tsx';
+import { QuizSetupPage } from './features/quiz/QuizSetupPage.tsx';
 import { ErrorPage } from './pages/ErrorPage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 
@@ -14,6 +16,8 @@ export const pageRoutes: RouteObject[] = [
   { path: 'entries/:id', element: <EntryDetailPage /> },
   { path: 'entries/:id/edit', element: <EntryEditorPage /> },
   { path: 'entries/:id/conjugation/:lang/:index', element: <ConjugationPage /> },
+  { path: 'quiz', element: <QuizSetupPage /> },
+  { path: 'quiz/session', element: <QuizSessionPage /> },
   { path: '*', element: <NotFoundPage /> },
 ];
 

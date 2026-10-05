@@ -50,6 +50,9 @@ export function DictionaryPage() {
               updateFilters({ query: event.target.value }, { replace: true });
             }}
           />
+          <Link className="button secondary quiz-link" to="/quiz">
+            {fr.quiz.open}
+          </Link>
         </div>
         <LangChips
           selected={filters.langs}

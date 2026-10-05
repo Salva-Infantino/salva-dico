@@ -1,0 +1,226 @@
+import { useCallback, useEffect, useReducer, useRef, useState, type MouseEvent } from 'react';
+import { Link, Navigate, useLocation } from 'react-router';
+import { Flag } from '../../components/Flag.tsx';
+import { useEntries } from '../../data/EntriesContext.ts';
+import { headwords } from '../../domain/forms.ts';
+import {
+  quizReducer,
+  quizSettingsSchema,
+  selectCards,
+  startQuiz,
+  type QuizSettings,
+} from '../../domain/quiz.ts';
+import { prefersReducedMotion } from '../../hooks/motion.ts';
+import { fr } from '../../i18n/fr.ts';
+import { QuizScore } from './QuizScore.tsx';
+import { SwipeCard, type SwipeDirection } from './SwipeCard.tsx';
+
+/** Matches the `.swipe-card` transition. */
+const EXIT_MS = 200;
+
+/** The session only exists in memory: reloading the page goes back to the settings. */
+export function QuizSessionPage() {
+  const location = useLocation();
+  const parsed = quizSettingsSchema.safeParse(
+    (location.state as { settings?: unknown } | null)?.settings,
+  );
+  if (!parsed.success) return <Navigate to="/quiz" replace />;
+  return <QuizSession settings={parsed.data} />;
+}
+
+/** Keeps a mouse click from moving the focus, so Space keeps flipping every card. */
+const keepFocus = (event: MouseEvent) => {
+  event.preventDefault();
+};
+
+function QuizSession({ settings }: { settings: QuizSettings }) {
+  const entriesState = useEntries();
+  // The cards are drawn once, when the session starts.
+  const [quiz, dispatch] = useReducer(quizReducer, null, () =>
+    startQuiz(
+      selectCards(entriesState.status === 'ready' ? entriesState.entries : [], settings),
+      settings.targets.length,
+    ),
+  );
+  const [exit, setExit] = useState<SwipeDirection | null>(null);
+  const exitTimer = useRef<number | undefined>(undefined);
+
+  const answer = useCallback(
+    (direction: SwipeDirection) => {
+      if (exit) return;
+      const action = {
+        type: 'answer',
+        answer: direction === 'right' ? 'known' : 'review',
+      } as const;
+      if (prefersReducedMotion()) {
+        dispatch(action);
+        return;
+      }
+      // The card flies away first, then the next one comes in.
+      setExit(direction);
+      exitTimer.current = window.setTimeout(() => {
+        setExit(null);
+        dispatch(action);
+      }, EXIT_MS);
+    },
+    [exit],
+  );
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(exitTimer.current);
+    },
+    [],
+  );
+
+  // Desktop controls: ← / → answer, Space flips every card, 1 / 2 / 3 flip one card.
+  useEffect(() => {
+    if (quiz.done) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        answer(event.key === 'ArrowRight' ? 'right' : 'left');
+      } else if (event.key === ' ') {
+        // On a focused button, Space activates that button instead.
+        if (target?.closest('button, a')) return;
+        event.preventDefault();
+        dispatch({ type: 'flipAll' });
+      } else if (/^[1-9]$/.test(event.key)) {
+        dispatch({ type: 'flip', index: Number(event.key) - 1 });
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [answer, quiz.done]);
+
+  if (quiz.done) {
+    return (
+      <main className="page quiz-end">
+        <h1>{fr.quiz.doneTitle}</h1>
+        {quiz.total > 0 ? (
+          <QuizScore known={quiz.knownFirstTry} total={quiz.total} />
+        ) : (
+          <p>{fr.quiz.none}</p>
+        )}
+        <div className="quiz-end-actions">
+          <Link className="button" to="/quiz">
+            {fr.quiz.again}
+          </Link>
+          <Link className="button secondary" to="/">
+            {fr.quiz.backHome}
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const card = quiz.queue[0];
+  if (!card) return null;
+  const position = quiz.position + 1;
+  const progress =
+    quiz.pass === 'main'
+      ? fr.quiz.progress(position, quiz.passSize)
+      : fr.quiz.reviewProgress(position, quiz.passSize);
+
+  return (
+    <main className="page quiz-session">
+      <header className="quiz-header">
+        <Link to="/">{fr.quiz.quit}</Link>
+        <p className="quiz-progress" aria-live="polite">
+          {progress}
+        </p>
+        <progress
+          className={quiz.pass === 'review' ? 'review' : undefined}
+          value={quiz.position}
+          max={quiz.passSize}
+          aria-hidden="true"
+        />
+      </header>
+
+      <SwipeCard key={`${quiz.pass}-${card.id}`} exit={exit} onSwipe={answer}>
+        <section className="quiz-source" aria-label={fr.langs[settings.source]}>
+          <Flag lang={settings.source} />
+          <ul className="quiz-words">
+            {headwords(card, settings.source).map((word, i) => (
+              <li key={i} lang={settings.source}>
+                {word}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="quiz-targets">
+          {settings.targets.map((lang, index) => {
+            const flipped = quiz.flipped[index] === true;
+            return (
+              <button
+                key={lang}
+                type="button"
+                className="quiz-target"
+                aria-pressed={flipped}
+                onMouseDown={keepFocus}
+                onClick={() => {
+                  dispatch({ type: 'flip', index });
+                }}
+              >
+                <Flag lang={lang} />
+                {flipped ? (
+                  <span className="quiz-target-words" lang={lang}>
+                    {headwords(card, lang).join(', ')}
+                  </span>
+                ) : (
+                  <span className="quiz-target-hidden">
+                    <span aria-hidden="true">?</span>
+                    <span className="visually-hidden">{fr.quiz.hidden}</span>
+                  </span>
+                )}
+                <kbd className="quiz-key" aria-hidden="true">
+                  {index + 1}
+                </kbd>
+              </button>
+            );
+          })}
+        </div>
+      </SwipeCard>
+
+      <div className="quiz-actions">
+        <button
+          type="button"
+          className="quiz-answer review"
+          onMouseDown={keepFocus}
+          onClick={() => {
+            answer('left');
+          }}
+        >
+          ← {fr.quiz.review}
+        </button>
+        <button
+          type="button"
+          className="secondary"
+          onMouseDown={keepFocus}
+          onClick={() => {
+            dispatch({ type: 'flipAll' });
+          }}
+        >
+          {fr.quiz.flipAll}
+        </button>
+        <button
+          type="button"
+          className="quiz-answer known"
+          onMouseDown={keepFocus}
+          onClick={() => {
+            answer('right');
+          }}
+        >
+          {fr.quiz.known} →
+        </button>
+      </div>
+      <p className="quiz-keyboard-hint muted">{fr.quiz.keyboardHint}</p>
+    </main>
+  );
+}
