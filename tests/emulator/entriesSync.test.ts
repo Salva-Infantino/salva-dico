@@ -153,6 +153,55 @@ describe('entries sync (Firestore emulator)', () => {
     });
   });
 
+  it('shows offline writes to an already running sync (new entry, mastered, delete)', async () => {
+    const device = newDevice();
+    const existing = createEntry(device, OWNER_UID, garconContent);
+    await existing.committed;
+
+    // A first sync stores a cursor: the next one uses the `updatedAt > cursor` delta query,
+    // as the app does after a reload.
+    const storage = memoryStorage();
+    await syncUntil(device, storage, (e) => e.has(existing.id));
+    await vi.waitFor(() => {
+      expect(storedCursor(storage, device)).not.toBeNull();
+    });
+    stops.splice(0).forEach((stopSync) => {
+      stopSync();
+    });
+
+    // One running sync, kept across the network loss (as in the app).
+    let latest: ReadonlyMap<string, Entry> = new Map();
+    const stop = startEntriesSync({
+      db: device,
+      uid: OWNER_UID,
+      storage,
+      onEntries: (entries) => {
+        latest = new Map(entries);
+      },
+    });
+    stops.push(stop);
+    await vi.waitFor(() => {
+      expect(latest.has(existing.id)).toBe(true);
+    });
+
+    // The server timestamps of these writes stay pending while offline.
+    await disableNetwork(device);
+    const added = createEntry(device, OWNER_UID, arbreContent);
+    const mastered = setMastered(device, OWNER_UID, existing.id, true);
+    await vi.waitFor(() => {
+      expect(latest.get(added.id)?.deleted).toBe(false);
+      expect(latest.get(existing.id)?.mastered).toBe(true);
+    });
+    const deleted = softDeleteEntry(device, OWNER_UID, added.id);
+    await vi.waitFor(() => {
+      expect(latest.get(added.id)?.deleted).toBe(true);
+    });
+
+    // Queued writes must reach the server before the next test clears the database.
+    await enableNetwork(device);
+    await Promise.all([added.committed, mastered, deleted]);
+  });
+
   it('does a full sync when the local cache was evicted, despite a stored cursor', async () => {
     const writer = newDevice();
     await createEntry(writer, OWNER_UID, garconContent).committed;

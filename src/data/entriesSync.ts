@@ -1,5 +1,4 @@
 import {
-  getDocsFromCache,
   onSnapshot,
   query,
   Timestamp,
@@ -43,10 +42,16 @@ export function cursorStorageKey(appName: string, projectId: string, uid: string
 }
 
 /**
- * Cost-aware delta sync:
- * 1. load every entry from the persistent local cache (free, works offline);
- * 2. listen only to documents whose server `updatedAt` is after the stored cursor.
- * An app start with no remote change costs a single billed read instead of one per entry.
+ * Cost-aware delta sync, with two listeners:
+ * 1. a cache-only listener on the whole collection (free, works offline) is the single
+ *    source of the entries: it sees local writes at once, including offline ones whose
+ *    server `updatedAt` is still pending, and everything the server listener brings in;
+ * 2. a server listener only on documents whose server `updatedAt` is after the stored
+ *    cursor, which feeds the local cache. An app start with no remote change costs a
+ *    single billed read instead of one per entry.
+ *
+ * The server listener alone would not do: a pending server timestamp does not match
+ * `updatedAt > cursor` locally, so offline writes would stay invisible until reconnection.
  *
  * Returns a function that stops the sync.
  */
@@ -54,32 +59,19 @@ export function startEntriesSync(options: EntriesSyncOptions): () => void {
   const { db, uid, storage, onEntries, onError } = options;
   const entries = new Map<string, Entry>();
   const key = cursorStorageKey(db.app.name, db.app.options.projectId ?? '', uid);
-  let unsubscribe: (() => void) | null = null;
-  const stopped = new AbortController();
+  const collectionRef = entriesCollection(db, uid);
+  let unsubscribeServer: (() => void) | null = null;
 
   const applySnapshot = (snapshot: QuerySnapshot) => {
     for (const change of snapshot.docChanges()) {
-      // With an `updatedAt >` query, documents never leave the result set
-      // (hard deletes are forbidden by the rules), so 'removed' is ignored.
+      // Hard deletes are forbidden by the rules: documents never leave the collection.
       if (change.type === 'removed') continue;
       const entry = entryFromDoc(change.doc.id, change.doc.data({ serverTimestamps: 'estimate' }));
       if (entry) entries.set(entry.id, entry);
     }
   };
 
-  void (async () => {
-    const collectionRef = entriesCollection(db, uid);
-    let cachedCount = 0;
-    try {
-      const cached = await getDocsFromCache(collectionRef);
-      cachedCount = cached.size;
-      applySnapshot(cached);
-    } catch {
-      // Nothing cached yet (first launch on this device): full sync below.
-    }
-    if (stopped.signal.aborted) return;
-    onEntries(entries);
-
+  const startServerListener = (cachedCount: number) => {
     let cursor = startingCursor(parseCursor(storage.getItem(key)), cachedCount);
     const deltaQuery =
       cursor === null
@@ -88,23 +80,33 @@ export function startEntriesSync(options: EntriesSyncOptions): () => void {
             collectionRef,
             where('updatedAt', '>', new Timestamp(cursor.seconds, cursor.nanoseconds)),
           );
-
-    unsubscribe = onSnapshot(
+    unsubscribeServer = onSnapshot(
       deltaQuery,
+      // Metadata changes: a server acknowledgement must advance the cursor.
       { includeMetadataChanges: true },
       (snapshot) => {
-        applySnapshot(snapshot);
         cursor = advanceCursor(cursor, snapshot);
         if (cursor !== null) storage.setItem(key, serializeCursor(cursor));
-        onEntries(entries);
       },
       (error) => onError?.(error),
     );
-  })();
+  };
+
+  const unsubscribeCache = onSnapshot(
+    collectionRef,
+    { source: 'cache' },
+    (snapshot) => {
+      applySnapshot(snapshot);
+      // The first cache snapshot holds everything cached on this device.
+      if (!unsubscribeServer) startServerListener(snapshot.size);
+      onEntries(entries);
+    },
+    (error) => onError?.(error),
+  );
 
   return () => {
-    stopped.abort();
-    unsubscribe?.();
+    unsubscribeCache();
+    unsubscribeServer?.();
   };
 }
 
