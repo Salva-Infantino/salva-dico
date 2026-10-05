@@ -155,6 +155,46 @@ export const fr = {
     again: 'Nouveau quiz',
     backHome: 'Retour au dictionnaire',
   },
+  settings: {
+    open: 'Réglages',
+    title: 'Réglages',
+    back: 'Retour au dictionnaire',
+    backup: 'Sauvegarde',
+    backupHint:
+      'Exporte tout le dictionnaire dans un fichier JSON, ou importe un export. Un import n’écrase jamais une entrée existante.',
+    export: (count: number) =>
+      count === 1 ? 'Exporter (1 entrée)' : `Exporter (${String(count)} entrées)`,
+    import: 'Importer un fichier…',
+    previewTitle: (fileName: string) => `Aperçu de « ${fileName} »`,
+    toImport: (count: number) =>
+      count === 0
+        ? 'Aucune nouvelle entrée'
+        : count === 1
+          ? '1 nouvelle entrée'
+          : `${String(count)} nouvelles entrées`,
+    alreadyPresent: (count: number) =>
+      count === 1
+        ? '1 entrée déjà présente (ignorée)'
+        : `${String(count)} entrées déjà présentes (ignorées)`,
+    invalid: (count: number) =>
+      count === 1 ? '1 entrée invalide (ignorée)' : `${String(count)} entrées invalides (ignorées)`,
+    confirmImport: (count: number) =>
+      count === 1 ? 'Importer 1 entrée' : `Importer ${String(count)} entrées`,
+    imported: (count: number) =>
+      count === 1 ? '1 entrée importée.' : `${String(count)} entrées importées.`,
+    importErrors: {
+      not_json: 'Ce fichier n’est pas un fichier JSON valide.',
+      not_an_export: 'Ce fichier n’est pas un export de Salva Dico.',
+      newer_version:
+        'Cet export vient d’une version plus récente de l’application. Mets-la à jour.',
+      too_large: 'Ce fichier est trop volumineux (10 Mo maximum).',
+      unreadable: 'Impossible de lire ce fichier.',
+    },
+    account: 'Compte',
+    signedInAs: (email: string) => `Connecté en tant que ${email}`,
+    signOutTitle: 'Se déconnecter ?',
+    signOutText: 'Tu devras te reconnecter avec Google sur cet appareil.',
+  },
   tenses: {
     present: 'présent',
     passeCompose: 'passé composé',

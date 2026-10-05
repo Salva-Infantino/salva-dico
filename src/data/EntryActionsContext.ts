@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { ExportedEntry } from '../domain/backup.ts';
 import type { EntryContent } from '../domain/schemas.ts';
 
 /**
@@ -11,6 +12,8 @@ export interface EntryActions {
   update: (id: string, content: EntryContent) => void;
   remove: (id: string) => void;
   setMastered: (id: string, mastered: boolean) => void;
+  /** Adds entries from an export, under their own ids. */
+  importEntries: (entries: readonly ExportedEntry[]) => void;
 }
 
 export const EntryActionsContext = createContext<EntryActions | null>(null);

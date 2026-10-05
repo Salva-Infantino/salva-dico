@@ -11,6 +11,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import {
   createEntry,
   entriesCollection,
+  importEntries,
   setMastered,
   softDeleteEntry,
 } from '../../src/data/entriesRepository.ts';
@@ -180,5 +181,34 @@ describe('entries sync (Firestore emulator)', () => {
     const entries = await syncUntil(newDevice(), memoryStorage(), (e) => e.has(valid.id));
     expect(entries.has('broken')).toBe(false);
     expect(warn).toHaveBeenCalled();
+  });
+
+  it('imports entries under their own ids, keeping mastered and the creation date', async () => {
+    const writer = newDevice();
+    const deleted = createEntry(writer, OWNER_UID, arbreContent);
+    await deleted.committed;
+    await softDeleteEntry(writer, OWNER_UID, deleted.id);
+    const original = (await syncUntil(newDevice(), memoryStorage(), (e) => e.has(deleted.id))).get(
+      deleted.id,
+    );
+    if (!original) throw new Error('missing entry');
+
+    await importEntries(writer, OWNER_UID, [
+      { id: 'imported', mastered: true, createdAt: 1_600_000_000_000, ...garconContent },
+      // A deleted entry comes back with its original creation date.
+      { id: deleted.id, mastered: false, createdAt: original.createdAt, ...arbreContent },
+    ]);
+
+    const entries = await syncUntil(
+      newDevice(),
+      memoryStorage(),
+      (e) => e.has('imported') && e.get(deleted.id)?.deleted === false,
+    );
+    expect(entries.get('imported')).toMatchObject({
+      mastered: true,
+      createdAt: 1_600_000_000_000,
+      deleted: false,
+      ...garconContent,
+    });
   });
 });

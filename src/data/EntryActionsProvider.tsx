@@ -3,6 +3,7 @@ import { useNotify } from '../components/notifications/NotificationsContext.ts';
 import { fr } from '../i18n/fr.ts';
 import {
   createEntry,
+  importEntries,
   setMastered,
   softDeleteEntry,
   updateEntryContent,
@@ -38,6 +39,9 @@ export function EntryActionsProvider({ uid, children }: { uid: string; children:
       },
       setMastered: (id, mastered) => {
         watch(setMastered(db, uid, id, mastered));
+      },
+      importEntries: (entries) => {
+        watch(importEntries(db, uid, entries));
       },
     };
   }, [uid, notify]);

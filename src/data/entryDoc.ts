@@ -1,4 +1,5 @@
 import { serverTimestamp, Timestamp, type DocumentData, type FieldValue } from 'firebase/firestore';
+import type { ExportedEntry } from '../domain/backup.ts';
 import {
   CURRENT_SCHEMA_VERSION,
   entryContentSchema,
@@ -17,7 +18,7 @@ export type NewEntryDoc = EntryContent & {
   schemaVersion: number;
   mastered: boolean;
   deleted: boolean;
-  createdAt: FieldValue;
+  createdAt: FieldValue | Timestamp;
   updatedAt: FieldValue;
 };
 
@@ -29,6 +30,15 @@ export function newEntryDoc(content: EntryContent): NewEntryDoc {
     deleted: false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+  };
+}
+
+/** Document of an imported entry: it keeps its mastered state and its creation date. */
+export function importedEntryDoc({ mastered, createdAt, ...content }: ExportedEntry): NewEntryDoc {
+  return {
+    ...newEntryDoc(content),
+    mastered,
+    createdAt: Timestamp.fromMillis(createdAt),
   };
 }
 

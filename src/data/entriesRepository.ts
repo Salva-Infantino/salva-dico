@@ -4,11 +4,16 @@ import {
   serverTimestamp,
   setDoc,
   updateDoc,
+  writeBatch,
   type CollectionReference,
   type Firestore,
 } from 'firebase/firestore';
+import type { ExportedEntry } from '../domain/backup.ts';
 import { entryContentSchema, type EntryContent } from '../domain/schemas.ts';
-import { newEntryDoc } from './entryDoc.ts';
+import { importedEntryDoc, newEntryDoc } from './entryDoc.ts';
+
+/** Firestore limit of writes per batch. */
+const MAX_BATCH_WRITES = 500;
 
 /**
  * Write operations. Every write sets `updatedAt` to the server time so the delta
@@ -61,4 +66,25 @@ export function softDeleteEntry(db: Firestore, uid: string, id: string): Promise
     deleted: true,
     updatedAt: serverTimestamp(),
   });
+}
+
+/**
+ * Writes imported entries under their own ids, in batches. Each batch is atomic.
+ * Callers only import entries that are not in the dictionary (see `previewImport`):
+ * a deleted entry with the same id is restored.
+ */
+export function importEntries(
+  db: Firestore,
+  uid: string,
+  entries: readonly ExportedEntry[],
+): Promise<void> {
+  const commits: Promise<void>[] = [];
+  for (let start = 0; start < entries.length; start += MAX_BATCH_WRITES) {
+    const batch = writeBatch(db);
+    for (const entry of entries.slice(start, start + MAX_BATCH_WRITES)) {
+      batch.set(doc(entriesCollection(db, uid), entry.id), importedEntryDoc(entry));
+    }
+    commits.push(batch.commit());
+  }
+  return Promise.all(commits).then(() => undefined);
 }

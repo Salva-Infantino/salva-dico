@@ -80,8 +80,9 @@ button {
   color: var(--color-accent-contrast);
 }
 
-/* Links styled as buttons. */
-a.button {
+/* Links (and the file picker label) styled as buttons. */
+a.button,
+label.button {
   display: inline-block;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius);
@@ -91,7 +92,8 @@ a.button {
 }
 
 button.secondary,
-a.button.secondary {
+a.button.secondary,
+label.button.secondary {
   background: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-border);
@@ -802,6 +804,79 @@ button.switch[aria-checked='true'] .switch-track::after {
 
 .imperative-grid {
   grid-template-columns: 1fr;
+}
+
+/* --- Header links and settings ---------------------------------------------------------- */
+
+a.button.icon-link {
+  display: inline-grid;
+  place-items: center;
+  padding: var(--space-2);
+}
+
+a.button.icon-link svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.page.settings {
+  max-width: 40rem;
+}
+
+.settings-section {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.settings-section h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.settings-section p {
+  margin: 0;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+label.file-button {
+  cursor: pointer;
+}
+
+/* The file input is visually hidden: show its focus on the label. */
+input[type='file']:focus-visible + label.file-button,
+label.file-button:has(+ input[type='file']:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.import-preview {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.import-preview h3 {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.import-preview ul {
+  margin: 0;
+  padding-inline-start: var(--space-6);
 }
 
 /* --- Quiz ------------------------------------------------------------------------------- */

@@ -6,6 +6,7 @@ import { EntryEditorPage } from './features/editor/EntryEditorPage.tsx';
 import { EntryDetailPage } from './features/entry/EntryDetailPage.tsx';
 import { QuizSessionPage } from './features/quiz/QuizSessionPage.tsx';
 import { QuizSetupPage } from './features/quiz/QuizSetupPage.tsx';
+import { SettingsPage } from './features/settings/SettingsPage.tsx';
 import { ErrorPage } from './pages/ErrorPage.tsx';
 import { NotFoundPage } from './pages/NotFoundPage.tsx';
 
@@ -18,6 +19,7 @@ export const pageRoutes: RouteObject[] = [
   { path: 'entries/:id/conjugation/:lang/:index', element: <ConjugationPage /> },
   { path: 'quiz', element: <QuizSetupPage /> },
   { path: 'quiz/session', element: <QuizSessionPage /> },
+  { path: 'settings', element: <SettingsPage /> },
   { path: '*', element: <NotFoundPage /> },
 ];
 
