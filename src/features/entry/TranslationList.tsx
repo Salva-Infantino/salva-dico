@@ -19,7 +19,9 @@ function items(entry: Entry, lang: Lang, speech: Speech) {
     case 'word':
       return entry.translations[lang].map((t, i) => (
         <li key={i}>
-          <span className="headword">{t.text}</span>
+          <span className="headword" lang={lang}>
+            {t.text}
+          </span>
           <SpeakButton text={t.text} lang={lang} speech={speech} />
         </li>
       ));
@@ -30,6 +32,7 @@ function items(entry: Entry, lang: Lang, speech: Speech) {
         <li key={i}>
           <Link
             className="headword"
+            lang={lang}
             to={`/entries/${entry.id}/conjugation/${lang}/${String(i)}`}
             aria-label={fr.conjugation.open(t.text)}
           >

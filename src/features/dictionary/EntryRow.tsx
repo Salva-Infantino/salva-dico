@@ -13,7 +13,7 @@ export const EntryRow = memo(function EntryRow({ entry }: { entry: Entry }) {
         {LANGS.map((lang) => (
           <span key={lang} className="entry-cell">
             <Flag lang={lang} />
-            <span className="entry-cell-text">
+            <span className="entry-cell-text" lang={lang}>
               <RowText entry={entry} lang={lang} />
             </span>
           </span>

@@ -3,6 +3,7 @@ import { AccessDeniedPage } from './auth/AccessDeniedPage.tsx';
 import { useAuth, type SignedInUser } from './auth/AuthContext.ts';
 import { SignInPage } from './auth/SignInPage.tsx';
 import { NotificationsProvider } from './components/notifications/NotificationsProvider.tsx';
+import { RouteFocus } from './components/RouteFocus.tsx';
 import { UpdatePrompt } from './components/UpdatePrompt.tsx';
 import { useEntries } from './data/EntriesContext.ts';
 import { EntriesProvider } from './data/EntriesProvider.tsx';
@@ -45,5 +46,10 @@ function SignedInApp({ user }: { user: SignedInUser }) {
   if (entries.status === 'loading') return <LoadingScreen />;
   if (entries.status === 'denied') return <AccessDeniedPage uid={user.uid} email={user.email} />;
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <RouteFocus />
+    </>
+  );
 }

@@ -129,6 +129,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
 
   return (
     <main className="page quiz-session">
+      <h1 className="visually-hidden">{fr.quiz.setupTitle}</h1>
       <header className="quiz-header">
         <Link to="/">{fr.quiz.quit}</Link>
         <p className="quiz-progress" aria-live="polite">
