@@ -1,4 +1,4 @@
-import { ENTRY_TYPES, type EntryType } from '../../src/domain/languages.ts';
+import { ENTRY_TYPES, type EntryType, type RomanceLang } from '../../src/domain/languages.ts';
 import { entryContentVariants, type EntryContent } from '../../src/domain/schemas.ts';
 import {
   translateRequestSchema,
@@ -6,8 +6,15 @@ import {
   type TranslateResponse,
 } from '../../src/domain/translateApi.ts';
 import { AiError, type AiClient } from './aiClient.ts';
-import { entryJsonSchema, typeJsonSchema } from './geminiSchema.ts';
-import { entryPrompt, SYSTEM_INSTRUCTION, typePrompt } from './prompt.ts';
+import {
+  CONJUGATION_SCHEMAS,
+  conjugationJsonSchema,
+  entryJsonSchema,
+  typeJsonSchema,
+  verbBaseJsonSchema,
+  verbBaseSchema,
+} from './geminiSchema.ts';
+import { conjugationPrompt, entryPrompt, SYSTEM_INSTRUCTION, typePrompt } from './prompt.ts';
 
 export interface TranslateDeps {
   /** Verifies a Firebase ID token and returns its user id; throws when invalid. */
@@ -69,7 +76,8 @@ export function createTranslateHandler(deps: TranslateDeps) {
     } catch (error) {
       if (error instanceof AiError) {
         console.error(`translate: ${error.kind}`, error.cause ?? error.message);
-        return fail(error.kind);
+        // A blocked answer (recitation filter…) is reported like any unusable output.
+        return fail(error.kind === 'blocked' ? 'invalid_output' : error.kind);
       }
       console.error('translate: unexpected error', error);
       return fail('ai_unavailable');
@@ -103,6 +111,7 @@ async function generateEntry(
   type: EntryType,
   signal: AbortSignal,
 ): Promise<EntryContent> {
+  if (type === 'verb') return generateVerb(ai, sourceLang, text, signal);
   const output = await ai.generateJson({
     system: SYSTEM_INSTRUCTION,
     prompt: entryPrompt(sourceLang, text, type),
@@ -117,4 +126,65 @@ async function generateEntry(
     });
   }
   return result.data;
+}
+
+async function generateVerb(
+  ai: AiClient,
+  sourceLang: Parameters<typeof entryPrompt>[0],
+  text: string,
+  signal: AbortSignal,
+): Promise<EntryContent> {
+  const base = verbBaseSchema.safeParse(
+    await ai.generateJson({
+      system: SYSTEM_INSTRUCTION,
+      prompt: entryPrompt(sourceLang, text, 'verb'),
+      schema: verbBaseJsonSchema(),
+      signal,
+    }),
+  );
+  if (!base.success) {
+    throw new AiError('invalid_output', 'Verb output does not match the schema', {
+      cause: base.error.issues,
+    });
+  }
+  const { translations } = base.data;
+  const meaning = translations.en[0]?.text;
+
+  // One request per conjugation, in parallel to stay well under the time limit.
+  // The assembled entry is validated as a whole below.
+  const conjugate = (lang: RomanceLang): Promise<unknown[]> =>
+    Promise.all(
+      translations[lang].map(async (translation) => {
+        const output = await ai.generateJson({
+          system: SYSTEM_INSTRUCTION,
+          prompt: conjugationPrompt(
+            lang,
+            translation.text,
+            meaning,
+            translation.reflexive === true,
+          ),
+          schema: conjugationJsonSchema(lang),
+          signal,
+        });
+        const conjugation = CONJUGATION_SCHEMAS[lang].safeParse(output);
+        if (!conjugation.success) {
+          throw new AiError('invalid_output', `Invalid ${lang} conjugation`, {
+            cause: conjugation.error.issues,
+          });
+        }
+        return { ...translation, conjugation: conjugation.data };
+      }),
+    );
+  const [fr, es, it] = await Promise.all([conjugate('fr'), conjugate('es'), conjugate('it')]);
+
+  const content = entryContentVariants.verb.safeParse({
+    type: 'verb',
+    translations: { fr, en: translations.en, es, it },
+  });
+  if (!content.success) {
+    throw new AiError('invalid_output', 'Assembled verb does not match the entry schema', {
+      cause: content.error.issues,
+    });
+  }
+  return content.data;
 }

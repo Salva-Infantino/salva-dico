@@ -15,12 +15,21 @@ vi.mock('@google/genai', async (importOriginal) => {
   };
 });
 
-const options = () => ({
+const options = (signal = new AbortController().signal) => ({
   system: 'rules',
   prompt: 'French noun: "chat"',
   schema: { type: 'object' },
-  signal: new AbortController().signal,
+  signal,
 });
+
+const answer = (text: string, finishReason = 'STOP') => ({
+  text,
+  candidates: [{ finishReason }],
+});
+
+function client(models = ['model-a', 'model-b']) {
+  return createGeminiClient({ apiKey: 'key', models, retryDelayMs: 0 });
+}
 
 async function failure(promise: Promise<unknown>): Promise<AiError> {
   const error = await promise.then(
@@ -31,17 +40,20 @@ async function failure(promise: Promise<unknown>): Promise<AiError> {
   return error;
 }
 
+const calledModels = () =>
+  generateContent.mock.calls.map((call) => (call[0] as { model: string }).model);
+
 describe('createGeminiClient', () => {
   beforeEach(() => {
     generateContent.mockReset();
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   it('requests JSON output with the schema and the system instruction', async () => {
-    generateContent.mockResolvedValue({ text: '{"type":"noun"}' });
-    const client = createGeminiClient({ apiKey: 'key', model: 'gemini-test' });
-    await expect(client.generateJson(options())).resolves.toEqual({ type: 'noun' });
+    generateContent.mockResolvedValue(answer('{"type":"noun"}'));
+    await expect(client().generateJson(options())).resolves.toEqual({ type: 'noun' });
     expect(generateContent).toHaveBeenCalledWith({
-      model: 'gemini-test',
+      model: 'model-a',
       contents: 'French noun: "chat"',
       config: expect.objectContaining({
         systemInstruction: 'rules',
@@ -51,26 +63,59 @@ describe('createGeminiClient', () => {
     });
   });
 
-  it('reports invalid JSON as invalid output', async () => {
-    generateContent.mockResolvedValue({ text: 'not json' });
-    const client = createGeminiClient({ apiKey: 'key', model: 'm' });
-    expect((await failure(client.generateJson(options()))).kind).toBe('invalid_output');
+  it('reports invalid JSON as invalid output, without retrying', async () => {
+    generateContent.mockResolvedValue(answer('not json'));
+    expect((await failure(client().generateJson(options()))).kind).toBe('invalid_output');
+    expect(generateContent).toHaveBeenCalledOnce();
   });
 
-  it('reports HTTP 429 as quota and other API errors as unavailable', async () => {
-    const client = createGeminiClient({ apiKey: 'key', model: 'm' });
-    generateContent.mockRejectedValueOnce(new ApiError({ message: 'quota', status: 429 }));
-    expect((await failure(client.generateJson(options()))).kind).toBe('quota');
-    generateContent.mockRejectedValueOnce(new ApiError({ message: 'down', status: 503 }));
-    expect((await failure(client.generateJson(options()))).kind).toBe('ai_unavailable');
+  it('retries a blocked answer (recitation), then falls back to the next model', async () => {
+    generateContent
+      .mockResolvedValueOnce(answer('', 'RECITATION'))
+      .mockResolvedValueOnce(answer('', 'RECITATION'))
+      .mockResolvedValueOnce(answer('{"ok":true}'));
+    await expect(client().generateJson(options())).resolves.toEqual({ ok: true });
+    expect(calledModels()).toEqual(['model-a', 'model-a', 'model-b']);
   });
 
-  it('reports an aborted request as a timeout', async () => {
+  it('retries an overloaded model (503), then falls back to the next model', async () => {
+    generateContent
+      .mockRejectedValueOnce(new ApiError({ message: 'busy', status: 503 }))
+      .mockResolvedValueOnce(answer('{"ok":true}'));
+    await expect(client().generateJson(options())).resolves.toEqual({ ok: true });
+    expect(calledModels()).toEqual(['model-a', 'model-a']);
+  });
+
+  it('gives up with the last error when every model fails', async () => {
+    generateContent.mockRejectedValue(new ApiError({ message: 'busy', status: 503 }));
+    expect((await failure(client().generateJson(options()))).kind).toBe('ai_unavailable');
+    expect(generateContent).toHaveBeenCalledTimes(4);
+
+    generateContent.mockReset();
+    generateContent.mockResolvedValue(answer('', 'RECITATION'));
+    expect((await failure(client().generateJson(options()))).kind).toBe('blocked');
+  });
+
+  it('moves to the next model when one is out of quota (429), without retrying it', async () => {
+    generateContent
+      .mockRejectedValueOnce(new ApiError({ message: 'quota', status: 429 }))
+      .mockResolvedValueOnce(answer('{"ok":true}'));
+    await expect(client().generateJson(options())).resolves.toEqual({ ok: true });
+    expect(calledModels()).toEqual(['model-a', 'model-b']);
+  });
+
+  it('reports quota when every model is out of quota', async () => {
+    generateContent.mockRejectedValue(new ApiError({ message: 'quota', status: 429 }));
+    expect((await failure(client().generateJson(options()))).kind).toBe('quota');
+    expect(calledModels()).toEqual(['model-a', 'model-b']);
+  });
+
+  it('reports an aborted request as a timeout, without retrying', async () => {
     const controller = new AbortController();
     controller.abort();
     generateContent.mockRejectedValue(new Error('aborted'));
-    const client = createGeminiClient({ apiKey: 'key', model: 'm' });
-    const error = await failure(client.generateJson({ ...options(), signal: controller.signal }));
+    const error = await failure(client().generateJson(options(controller.signal)));
     expect(error.kind).toBe('timeout');
+    expect(generateContent).toHaveBeenCalledOnce();
   });
 });

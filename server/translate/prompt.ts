@@ -49,3 +49,16 @@ export function typePrompt(sourceLang: Lang, text: string): string {
   return `Classify this ${LANG_NAMES[sourceLang]} dictionary item as one of: noun, verb, adjective, expression (any multi-word phrase that is not a single noun, verb or adjective).
 Item: "${text}"`;
 }
+
+export function conjugationPrompt(
+  lang: Lang,
+  verb: string,
+  englishMeaning: string | undefined,
+  reflexive: boolean,
+): string {
+  const meaning = englishMeaning ? ` (${englishMeaning})` : '';
+  const reflexiveNote = reflexive
+    ? ' It is reflexive: keep the reflexive pronoun in every form.'
+    : '';
+  return `Conjugation of the ${LANG_NAMES[lang]} verb "${verb}"${meaning}.${reflexiveNote}`;
+}

@@ -14,7 +14,7 @@ function getHandler() {
     handler = createTranslateHandler({
       verifyIdToken: createIdTokenVerifier(env.projectId),
       ownerUid: env.ownerUid,
-      ai: createGeminiClient({ apiKey: env.geminiApiKey, model: env.geminiModel }),
+      ai: createGeminiClient({ apiKey: env.geminiApiKey, models: env.geminiModels }),
     });
   }
   return handler;

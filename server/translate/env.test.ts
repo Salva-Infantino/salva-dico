@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_GEMINI_MODEL, parseServerEnv } from './env.ts';
+import { parseServerEnv } from './env.ts';
 
 const env = { GEMINI_API_KEY: 'key', OWNER_UID: 'owner', VITE_FIREBASE_PROJECT_ID: 'salva-dico' };
 
@@ -8,15 +8,23 @@ describe('parseServerEnv', () => {
   it('uses the default model and the client project id', () => {
     expect(parseServerEnv(env)).toEqual({
       geminiApiKey: 'key',
-      geminiModel: DEFAULT_GEMINI_MODEL,
+      geminiModels: ['gemini-3.8-flash', 'gemini-3.5-flash'],
       ownerUid: 'owner',
       projectId: 'salva-dico',
     });
   });
 
-  it('lets FIREBASE_PROJECT_ID and GEMINI_MODEL override the defaults', () => {
-    const parsed = parseServerEnv({ ...env, FIREBASE_PROJECT_ID: 'other', GEMINI_MODEL: 'x' });
-    expect(parsed).toMatchObject({ projectId: 'other', geminiModel: 'x' });
+  it('lets FIREBASE_PROJECT_ID and GEMINI_MODEL (a list) override the defaults', () => {
+    const parsed = parseServerEnv({
+      ...env,
+      FIREBASE_PROJECT_ID: 'other',
+      GEMINI_MODEL: ' model-a , model-b,',
+    });
+    expect(parsed).toMatchObject({ projectId: 'other', geminiModels: ['model-a', 'model-b'] });
+  });
+
+  it('rejects a GEMINI_MODEL list without any model', () => {
+    expect(() => parseServerEnv({ ...env, GEMINI_MODEL: ' , ' })).toThrow(/GEMINI_MODEL/);
   });
 
   it('names missing variables without echoing secrets', () => {

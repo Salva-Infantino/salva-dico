@@ -1,10 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
-import { allerContent, garconContent } from '../../src/test/fixtures.ts';
+import type { EntryContent } from '../../src/domain/schemas.ts';
+import { allerContent, garconContent, seLeverContent } from '../../src/test/fixtures.ts';
 import { AiError, type AiClient, type GenerateJsonOptions } from './aiClient.ts';
 import { createTranslateHandler, type TranslateDeps } from './handler.ts';
 
 const OWNER = 'owner-uid';
+
+type VerbContent = Extract<EntryContent, { type: 'verb' }>;
 
 /** A Gemini stand-in returning queued outputs (or throwing queued errors). */
 function fakeAi(...outputs: unknown[]) {
@@ -50,6 +53,20 @@ async function read(response: Response) {
 }
 
 const verbRequest = { sourceLang: 'it', text: 'andare', type: 'verb' };
+const nounRequest = { sourceLang: 'fr', text: 'garçon', type: 'noun' };
+
+/** The AI outputs of a verb: the entry without romance conjugations, then fr, es, it. */
+function verbOutputs(content: VerbContent = allerContent): unknown[] {
+  const { fr, en, es, it } = content.translations;
+  const strip = (list: readonly { conjugation: unknown }[]) =>
+    list.map(({ conjugation, ...rest }) => rest);
+  return [
+    { type: 'verb', translations: { fr: strip(fr), en, es: strip(es), it: strip(it) } },
+    fr[0]?.conjugation,
+    es[0]?.conjugation,
+    it[0]?.conjugation,
+  ];
+}
 
 describe('POST /api/translate — access control', () => {
   it('only accepts POST', async () => {
@@ -90,16 +107,51 @@ describe('POST /api/translate — access control', () => {
 });
 
 describe('POST /api/translate — generation', () => {
-  it('generates an entry of the requested type with its schema', async () => {
-    const { ai, calls } = fakeAi(allerContent);
+  it('generates an entry of the requested type with its schema, in one request', async () => {
+    const { ai, calls } = fakeAi(garconContent);
+    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
+      status: 200,
+      body: { content: garconContent },
+    });
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.prompt).toBe('French noun: "garçon"');
+    expect(JSON.stringify(calls[0]?.schema)).toContain('"enum":["noun"]');
+    expect(calls[0]?.system).toMatch(/vosotros/);
+  });
+
+  it('generates a verb in several requests: the entry, then one per conjugation', async () => {
+    const { ai, calls } = fakeAi(...verbOutputs());
     expect(await read(await handler(ai)(post(verbRequest)))).toEqual({
       status: 200,
       body: { content: allerContent },
     });
-    expect(calls).toHaveLength(1);
-    expect(calls[0]?.prompt).toBe('Italian verb: "andare"');
-    expect(JSON.stringify(calls[0]?.schema)).toContain('"enum":["verb"]');
-    expect(calls[0]?.system).toMatch(/vosotros/);
+    expect(calls.map((call) => call.prompt)).toEqual([
+      'Italian verb: "andare"',
+      'Conjugation of the French verb "aller" (go).',
+      'Conjugation of the Spanish verb "ir" (go).',
+      'Conjugation of the Italian verb "andare" (go).',
+    ]);
+    // The first request does not ask for the long romance conjugations.
+    expect(JSON.stringify(calls[0]?.schema)).not.toContain('passatoProssimo');
+  });
+
+  it('mentions the reflexive pronoun when conjugating a reflexive verb', async () => {
+    const { ai, calls } = fakeAi(...verbOutputs(seLeverContent));
+    const response = await handler(ai)(post({ sourceLang: 'fr', text: 'se lever', type: 'verb' }));
+    expect(response.status).toBe(200);
+    expect(calls[1]?.prompt).toBe(
+      'Conjugation of the French verb "se lever" (get up). It is reflexive: keep the reflexive pronoun in every form.',
+    );
+  });
+
+  it('rejects an invalid conjugation', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const outputs = verbOutputs();
+    const { ai } = fakeAi(...outputs.slice(0, 3), { presente: ['vado'] });
+    expect(await read(await handler(ai)(post(verbRequest)))).toEqual({
+      status: 502,
+      body: { error: 'invalid_output' },
+    });
   });
 
   it('detects the type first when none is given', async () => {
@@ -114,13 +166,16 @@ describe('POST /api/translate — generation', () => {
 
   it('rejects output that does not match the entry schema', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const incomplete = { ...allerContent, translations: { ...allerContent.translations, es: [] } };
-    expect(await read(await handler(fakeAi(incomplete).ai)(post(verbRequest)))).toEqual({
+    const incomplete = {
+      ...garconContent,
+      translations: { ...garconContent.translations, es: [] },
+    };
+    expect(await read(await handler(fakeAi(incomplete).ai)(post(nounRequest)))).toEqual({
       status: 502,
       body: { error: 'invalid_output' },
     });
     // Output of another type than requested is invalid too.
-    expect((await handler(fakeAi(garconContent).ai)(post(verbRequest))).status).toBe(502);
+    expect((await handler(fakeAi(allerContent).ai)(post(nounRequest))).status).toBe(502);
     expect(error).toHaveBeenCalled();
   });
 
@@ -133,37 +188,38 @@ describe('POST /api/translate — generation', () => {
   });
 
   it.each([
-    ['quota', 429],
-    ['timeout', 504],
-    ['ai_unavailable', 503],
-    ['invalid_output', 502],
-  ] as const)('maps an AI %s error to %i', async (kind, status) => {
+    ['quota', 429, 'quota'],
+    ['timeout', 504, 'timeout'],
+    ['ai_unavailable', 503, 'ai_unavailable'],
+    ['invalid_output', 502, 'invalid_output'],
+    ['blocked', 502, 'invalid_output'],
+  ] as const)('maps an AI %s error to %i', async (kind, status, error) => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const ai = fakeAi(new AiError(kind, 'boom')).ai;
-    expect(await read(await handler(ai)(post(verbRequest)))).toEqual({
+    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
       status,
-      body: { error: kind },
+      body: { error },
     });
   });
 
   it('hides unexpected errors behind ai_unavailable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const ai = fakeAi(new TypeError('bug')).ai;
-    expect(await read(await handler(ai)(post(verbRequest)))).toEqual({
+    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
       status: 503,
       body: { error: 'ai_unavailable' },
     });
   });
 
   it('gives the AI an abort signal bounded by the timeout', async () => {
-    const { ai, calls } = fakeAi(allerContent);
-    await handler(ai, { timeoutMs: 1234 })(post(verbRequest));
+    const { ai, calls } = fakeAi(garconContent);
+    await handler(ai, { timeoutMs: 1234 })(post(nounRequest));
     expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
     expect(calls[0]?.signal.aborted).toBe(false);
   });
 
   it('never caches responses', async () => {
-    const response = await handler(fakeAi(allerContent).ai)(post(verbRequest));
+    const response = await handler(fakeAi(garconContent).ai)(post(nounRequest));
     expect(response.headers.get('Cache-Control')).toBe('no-store');
   });
 });

@@ -1,11 +1,22 @@
 import { z } from 'zod';
 
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
+/** Tried in order: the second one takes over when the first is overloaded. */
+export const DEFAULT_GEMINI_MODELS = 'gemini-3.8-flash,gemini-3.5-flash';
 
 /** Server-only configuration (Netlify environment variables, never VITE_). */
 const serverEnvSchema = z.object({
   GEMINI_API_KEY: z.string().min(1),
-  GEMINI_MODEL: z.string().min(1).default(DEFAULT_GEMINI_MODEL),
+  /** Comma-separated list of models, tried in order. */
+  GEMINI_MODEL: z
+    .string()
+    .default(DEFAULT_GEMINI_MODELS)
+    .transform((value) =>
+      value
+        .split(',')
+        .map((model) => model.trim())
+        .filter(Boolean),
+    )
+    .pipe(z.array(z.string()).min(1)),
   OWNER_UID: z.string().min(1),
   // The client config already holds the project id; FIREBASE_PROJECT_ID overrides it.
   FIREBASE_PROJECT_ID: z.string().min(1).optional(),
@@ -14,7 +25,7 @@ const serverEnvSchema = z.object({
 
 export interface ServerEnv {
   geminiApiKey: string;
-  geminiModel: string;
+  geminiModels: string[];
   ownerUid: string;
   projectId: string;
 }
@@ -30,7 +41,7 @@ export function parseServerEnv(env: Record<string, string | undefined>): ServerE
   }
   return {
     geminiApiKey: result.data.GEMINI_API_KEY,
-    geminiModel: result.data.GEMINI_MODEL,
+    geminiModels: result.data.GEMINI_MODEL,
     ownerUid: result.data.OWNER_UID,
     projectId,
   };
