@@ -3,6 +3,13 @@
   command = "pnpm build"
   publish = "dist"
 
+# Netlify's secrets scanning fails the deploy when an environment variable's value is
+# found in the repo or the build output. These values are public by design: the
+# Firebase web config is embedded in the client bundle, and the owner UID is written in
+# firestore.rules (security comes from the rules). GEMINI_API_KEY stays scanned.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_PROJECT_ID,VITE_FIREBASE_APP_ID,OWNER_UID"
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
