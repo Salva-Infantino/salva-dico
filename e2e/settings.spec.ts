@@ -4,7 +4,7 @@ import { signIn } from './helpers.ts';
 
 interface ExportFile {
   app: string;
-  entries: { id: string; translations: Record<string, { text: string }[]> }[];
+  entries: { id: string; translations: Record<'fr' | 'en' | 'es' | 'it', { text: string }[]> }[];
 }
 
 test('exports the dictionary, imports a modified export, and signs out', async ({
@@ -23,21 +23,25 @@ test('exports the dictionary, imports a modified export, and signs out', async (
   expect(exported.app).toBe('salva-dico');
   expect(exported.entries.length).toBeGreaterThan(20);
 
-  // Import the same export plus one new entry: only the new one is written.
-  const [first] = exported.entries;
-  if (!first) throw new Error('Empty export');
+  // Import one seeded entry (already present) plus a new one. Other specs add and
+  // delete entries in parallel, so the file does not reuse the whole export.
+  const arbre = exported.entries.find((entry) => entry.translations.fr[0]?.text === 'arbre');
+  if (!arbre) throw new Error('Seeded entry missing from the export');
   const text = (lang: string) => [{ text: `${word}-${lang}` }];
-  exported.entries.push({
-    ...first,
-    id: word,
-    translations: { fr: text('fr'), en: text('en'), es: text('es'), it: text('it') },
-  });
+  exported.entries = [
+    arbre,
+    {
+      ...arbre,
+      id: word,
+      translations: { fr: text('fr'), en: text('en'), es: text('es'), it: text('it') },
+    },
+  ];
   const file = testInfo.outputPath('import.json');
   await writeFile(file, JSON.stringify(exported));
   await page.getByLabel('Importer un fichier…').setInputFiles(file);
 
   await expect(page.getByText('1 nouvelle entrée')).toBeVisible();
-  await expect(page.getByText(/entrées déjà présentes \(ignorées\)/)).toBeVisible();
+  await expect(page.getByText('1 entrée déjà présente (ignorée)')).toBeVisible();
   await page.getByRole('button', { name: 'Importer 1 entrée' }).click();
   await expect(page.getByRole('status').filter({ hasText: '1 entrée importée.' })).toBeVisible();
 
