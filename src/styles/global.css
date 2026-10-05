@@ -558,11 +558,6 @@ button.switch[aria-checked='true'] .switch-track::after {
   border-bottom: 1px dashed var(--color-border);
 }
 
-.noun-fields {
-  display: grid;
-  gap: var(--space-2);
-}
-
 .field-grid {
   display: grid;
   gap: var(--space-2) var(--space-3);
@@ -574,8 +569,7 @@ button.switch[aria-checked='true'] .switch-track::after {
   gap: var(--space-1);
 }
 
-.field label,
-.gender legend {
+.field label {
   font-size: 0.875rem;
   color: var(--color-text-muted);
 }
@@ -600,18 +594,6 @@ button.switch[aria-checked='true'] .switch-track::after {
   margin: 0;
   font-size: 0.875rem;
   color: var(--color-error);
-}
-
-.gender {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.gender legend {
-  float: left;
-  margin-inline-end: var(--space-2);
 }
 
 .inline-choice {

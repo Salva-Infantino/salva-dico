@@ -17,7 +17,7 @@ vi.mock('@google/genai', async (importOriginal) => {
 
 const options = (signal = new AbortController().signal) => ({
   system: 'rules',
-  prompt: 'French noun: "chat"',
+  prompt: 'French word: "chat"',
   schema: { type: 'object' },
   signal,
 });
@@ -50,11 +50,11 @@ describe('createGeminiClient', () => {
   });
 
   it('requests JSON output with the schema and the system instruction', async () => {
-    generateContent.mockResolvedValue(answer('{"type":"noun"}'));
-    await expect(client().generateJson(options())).resolves.toEqual({ type: 'noun' });
+    generateContent.mockResolvedValue(answer('{"type":"word"}'));
+    await expect(client().generateJson(options())).resolves.toEqual({ type: 'word' });
     expect(generateContent).toHaveBeenCalledWith({
       model: 'model-a',
-      contents: 'French noun: "chat"',
+      contents: 'French word: "chat"',
       config: expect.objectContaining({
         systemInstruction: 'rules',
         responseMimeType: 'application/json',

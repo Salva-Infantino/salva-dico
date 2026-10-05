@@ -43,7 +43,7 @@ describe('entrySchema', () => {
     const entry = clone(makeEntry(garconContent));
     const translations = { ...entry.translations, en: [{ text: '  boy ' }] };
     const parsed = entrySchema.parse({ ...entry, translations });
-    expect(parsed.type === 'noun' && parsed.translations.en[0]?.text).toBe('boy');
+    expect(parsed.translations.en[0]?.text).toBe('boy');
   });
 
   it('accepts several translations of equal weight in one language', () => {
@@ -52,36 +52,14 @@ describe('entrySchema', () => {
     expect(entrySchema.safeParse({ ...entry, translations }).success).toBe(true);
   });
 
-  it('accepts an uncountable noun without plural', () => {
+  it('drops grammar fields from words (no gender, article or plural)', () => {
     const entry = clone(makeEntry(garconContent));
     const translations = {
       ...entry.translations,
-      es: [{ text: 'paciencia', gender: 'f', article: 'la' }],
+      fr: [{ text: 'garçon', gender: 'm', article: 'le' }],
     };
-    expect(entrySchema.safeParse({ ...entry, translations }).success).toBe(true);
-  });
-
-  it('requires plural and pluralArticle together', () => {
-    const entry = clone(makeEntry(garconContent));
-    const translations = {
-      ...entry.translations,
-      it: [{ text: 'ragazzo', gender: 'm', article: 'il', plural: 'ragazzi' }],
-    };
-    expect(entrySchema.safeParse({ ...entry, translations }).success).toBe(false);
-  });
-
-  it('requires gender and article for FR / ES / IT nouns but not for EN', () => {
-    const entry = clone(makeEntry(garconContent));
-    const noGender = { ...entry.translations, fr: [{ text: 'garçon', article: 'le' }] };
-    expect(entrySchema.safeParse({ ...entry, translations: noGender }).success).toBe(false);
-    expect(entry.translations.en[0]).not.toHaveProperty('gender');
-    expect(entrySchema.safeParse(entry).success).toBe(true);
-  });
-
-  it('requires the 4 adjective forms in FR / ES / IT', () => {
-    const entry = clone(makeEntry(grandContent));
-    const translations = { ...entry.translations, it: [{ mascSing: 'grande' }] };
-    expect(entrySchema.safeParse({ ...entry, translations }).success).toBe(false);
+    const parsed = entrySchema.parse({ ...entry, translations });
+    expect(parsed.translations.fr[0]).toEqual({ text: 'garçon' });
   });
 
   it('requires exactly 6 persons per tense', () => {

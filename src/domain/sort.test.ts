@@ -11,7 +11,7 @@ import { sortAlphabetically } from './sort.ts';
 const expression = (fr: string) =>
   makeEntry(
     {
-      type: 'expression',
+      type: 'word',
       translations: {
         fr: [{ text: fr }],
         en: [{ text: 'x' }],

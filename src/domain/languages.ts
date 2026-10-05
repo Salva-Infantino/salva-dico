@@ -1,11 +1,12 @@
 export const LANGS = ['fr', 'en', 'es', 'it'] as const;
 export type Lang = (typeof LANGS)[number];
 
-/** Languages with grammatical gender, articles and full verb conjugations. */
+/** Languages with full verb conjugations (6 persons, imperative). */
 export const ROMANCE_LANGS = ['fr', 'es', 'it'] as const satisfies readonly Lang[];
 export type RomanceLang = (typeof ROMANCE_LANGS)[number];
 
-export const ENTRY_TYPES = ['noun', 'verb', 'adjective', 'expression'] as const;
+/** A word (or an expression) needs only its text; a verb also has its conjugation. */
+export const ENTRY_TYPES = ['word', 'verb'] as const;
 export type EntryType = (typeof ENTRY_TYPES)[number];
 
 export type SixPersons<T> = readonly [T, T, T, T, T, T];

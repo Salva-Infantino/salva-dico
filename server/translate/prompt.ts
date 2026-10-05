@@ -20,16 +20,8 @@ Language varieties:
 
 Translations:
 - Every language needs at least one translation. Include the given word itself in its own language.
-- Add several translations in a language only when their meanings genuinely differ, or for the masculine and feminine of a person noun (ami / amie). No near-synonyms, no example sentences.
-- Use the dictionary form: singular nouns, masculine singular adjectives, infinitive verbs.
-
-Nouns:
-- "text" is the bare noun, without article. "article" is the singular definite article (fr: le, la, l'; es: el, la; it: il, lo, la, l'), "pluralArticle" the plural one (fr: les; es: los, las; it: i, gli, le). Feminine Spanish nouns with stressed a- take "el" (el agua) and keep gender "f".
-- "gender" is "m" or "f". Omit "plural" and "pluralArticle" only for nouns without a plural.
-- English nouns have no gender or article; give "plural" only when it is irregular (mouse -> mice).
-
-Adjectives:
-- French, Spanish and Italian adjectives have 4 forms (mascSing, femSing, mascPlural, femPlural); identical forms are allowed (grande, grande, grandi, grandi). English adjectives have a single "text".
+- Add several translations in a language only when their meanings genuinely differ. No near-synonyms, no example sentences.
+- Words (nouns, adjectives, adverbs, expressions…) are given in their dictionary form only: no article, singular, masculine (garçon, not le garçon; grand, not grande). No gender, plural or feminine forms.
 
 Verbs:
 - "text" is the infinitive as written in a dictionary, including the reflexive pronoun (se lever, levantarse, alzarsi); set "reflexive": true for reflexive verbs.
@@ -46,7 +38,7 @@ export function entryPrompt(sourceLang: Lang, text: string, type: EntryType): st
 }
 
 export function typePrompt(sourceLang: Lang, text: string): string {
-  return `Classify this ${LANG_NAMES[sourceLang]} dictionary item as one of: noun, verb, adjective, expression (any multi-word phrase that is not a single noun, verb or adjective).
+  return `Classify this ${LANG_NAMES[sourceLang]} dictionary item as "verb" (a verb in the infinitive, possibly reflexive) or "word" (anything else: noun, adjective, adverb, expression…).
 Item: "${text}"`;
 }
 

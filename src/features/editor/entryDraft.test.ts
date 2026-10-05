@@ -4,10 +4,8 @@ import type { EntryContent } from '../../domain/schemas.ts';
 import {
   allerContent,
   arbreContent,
-  seLeverContent,
-  grandContent,
   makeEntry,
-  sourisContent,
+  seLeverContent,
   sVousPlaitContent,
 } from '../../test/fixtures.ts';
 import {
@@ -23,9 +21,9 @@ function draftOf(content: EntryContent): EntryDraft {
   return draftFromContent(makeEntry(content));
 }
 
-/** A complete, valid expression draft. */
-function expressionDraft(): EntryDraft {
-  const draft = emptyDraft({ type: 'expression' });
+/** A complete, valid word draft. */
+function wordDraft(): EntryDraft {
+  const draft = emptyDraft({ type: 'word' });
   for (const lang of LANGS) {
     draft.translations[lang] = [emptyTranslation(`hello ${lang}`)];
   }
@@ -35,7 +33,7 @@ function expressionDraft(): EntryDraft {
 describe('emptyDraft', () => {
   it('starts with one empty row per language, pre-filled in the start language', () => {
     const draft = emptyDraft({ lang: 'it', text: 'ragazzo' });
-    expect(draft.type).toBe('noun');
+    expect(draft.type).toBe('word');
     expect(draft.translations.it[0]?.text).toBe('ragazzo');
     expect(draft.translations.fr[0]?.text).toBe('');
   });
@@ -43,25 +41,10 @@ describe('emptyDraft', () => {
 
 describe('draftFromContent → validateDraft round trip', () => {
   it.each([
-    ['noun', arbreContent],
-    ['noun with irregular EN plural', sourisContent],
-    ['adjective', grandContent],
-    ['expression with several translations', sVousPlaitContent],
+    ['word', arbreContent],
+    ['word with several translations', sVousPlaitContent],
   ] as const)('keeps a %s unchanged', (_label, content) => {
     expect(validateDraft(draftOf(content))).toEqual({ ok: true, content });
-  });
-
-  it('keeps an uncountable noun without plural', () => {
-    const content: EntryContent = {
-      ...arbreContent,
-      translations: {
-        ...arbreContent.translations,
-        es: [{ text: 'paciencia', gender: 'f', article: 'la' }],
-      },
-    };
-    const draft = draftOf(content);
-    expect(draft.translations.es[0]?.hasPlural).toBe(false);
-    expect(validateDraft(draft)).toEqual({ ok: true, content });
   });
 
   it.each([
@@ -74,55 +57,32 @@ describe('draftFromContent → validateDraft round trip', () => {
 
 describe('validateDraft', () => {
   it('trims values', () => {
-    const draft = expressionDraft();
+    const draft = wordDraft();
     draft.translations.fr = [emptyTranslation('  bonjour ')];
     const result = validateDraft(draft);
     expect(result.ok && result.content.translations.fr).toEqual([{ text: 'bonjour' }]);
   });
 
   it('ignores blank rows but requires one translation per language', () => {
-    const draft = expressionDraft();
+    const draft = wordDraft();
     draft.translations.fr.push(emptyTranslation(''));
     draft.translations.es = [emptyTranslation('  ')];
     expect(validateDraft(draft)).toEqual({ ok: false, errors: { es: 'missingLanguage' } });
   });
 
   it('maps errors to the draft row, even after a dropped blank row', () => {
-    const draft = draftOf(arbreContent);
-    const incomplete = { ...emptyTranslation('ragazzo'), article: 'il' };
-    draft.translations.it = [emptyTranslation(''), incomplete];
-    const result = validateDraft(draft);
-    expect(result.ok).toBe(false);
-    expect(!result.ok && result.errors).toEqual({
-      'it.1.gender': 'gender',
-      'it.1.plural': 'required',
-      'it.1.pluralArticle': 'required',
-    });
-  });
-
-  it('requires the plural article together with the plural', () => {
-    const draft = draftOf(arbreContent);
-    const [fr] = draft.translations.fr;
-    draft.translations.fr = [{ ...(fr ?? emptyTranslation()), pluralArticle: '' }];
-    const result = validateDraft(draft);
-    expect(!result.ok && result.errors['fr.0.pluralArticle']).toBe('required');
-  });
-
-  it('maps the masculine singular of an adjective to the main field', () => {
-    const draft = draftOf(grandContent);
+    const draft = draftOf(allerContent);
     const [it] = draft.translations.it;
-    draft.translations.it = [{ ...(it ?? emptyTranslation()), text: '', femSing: '' }];
+    if (!it) throw new Error('missing row');
+    draft.translations.it = [emptyTranslation(''), { ...it, text: ' ' }];
     const result = validateDraft(draft);
-    expect(!result.ok && result.errors).toEqual({
-      'it.0.text': 'required',
-      'it.0.femSing': 'required',
-    });
+    expect(!result.ok && result.errors).toEqual({ 'it.1.text': 'required' });
   });
 
   it('keeps typed words when the type changes', () => {
     const draft = draftOf(sVousPlaitContent);
-    const result = validateDraft({ ...draft, type: 'noun' });
-    expect(!result.ok && result.errors['fr.0.article']).toBe('required');
+    const result = validateDraft({ ...draft, type: 'verb' });
+    expect(!result.ok && result.errors['fr.0.conjugation.auxiliary']).toBe('auxiliary');
     expect(draft.translations.fr[0]?.text).toBe("s'il vous plaît");
   });
 });
@@ -183,15 +143,19 @@ describe('validateDraft — verbs', () => {
 
 describe('draftSignature', () => {
   it('ignores row keys, blank rows and fields of other types', () => {
-    const draft = expressionDraft();
+    const draft = wordDraft();
     const copy = structuredClone(draft);
-    copy.translations.fr = copy.translations.fr.map((t) => ({ ...t, key: 'other', article: 'le' }));
+    copy.translations.fr = copy.translations.fr.map((t) => ({
+      ...t,
+      key: 'other',
+      auxiliary: 'être',
+    }));
     copy.translations.en.push(emptyTranslation());
     expect(draftSignature(copy)).toBe(draftSignature(draft));
   });
 
   it('changes when a relevant value changes', () => {
-    const draft = expressionDraft();
+    const draft = wordDraft();
     const copy = structuredClone(draft);
     copy.translations.it = [emptyTranslation('ciao')];
     expect(draftSignature(copy)).not.toBe(draftSignature(draft));

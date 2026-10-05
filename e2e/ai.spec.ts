@@ -14,7 +14,7 @@ test('translates a word with the AI, reviews it and saves it', async ({ page }, 
     await route.fulfill({
       json: {
         content: {
-          type: 'expression',
+          type: 'word',
           translations: {
             fr: [{ text: word }],
             en: [{ text: `${word}-en` }],
@@ -29,14 +29,14 @@ test('translates a word with the AI, reviews it and saves it', async ({ page }, 
   await signIn(page);
   await page.getByRole('searchbox', { name: 'Rechercher' }).fill(word);
   await page.getByRole('link', { name: `Ajouter « ${word} »` }).click();
-  await page.getByRole('combobox', { name: 'Type' }).selectOption('expression');
+  await page.getByRole('combobox', { name: 'Type' }).selectOption('word');
   await page.getByRole('button', { name: 'Traduire avec l’IA' }).click();
 
   // Review screen: everything editable, nothing saved yet.
   await expect(page.getByRole('heading', { name: 'Vérifie la traduction' })).toBeVisible();
   expect(requests).toEqual([
     {
-      body: { sourceLang: 'fr', text: word, type: 'expression' },
+      body: { sourceLang: 'fr', text: word, type: 'word' },
       authorization: expect.stringMatching(/^Bearer .+/) as unknown,
     },
   ]);

@@ -33,31 +33,13 @@ describe('EntryDetailPage', () => {
       expect(card(lang)).toBeInTheDocument();
     }
     expect(container.querySelectorAll('.lang-card svg.flag')).toHaveLength(4);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(fr.entryTypes.noun);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(fr.entryTypes.word);
   });
 
-  it('shows noun articles, plural and gender as discreet details', () => {
+  it('shows the word of each language', () => {
     renderWithEntries(entries, '/entries/arbre');
-    expect(within(card('Français')).getByRole('listitem')).toHaveTextContent(
-      "l'arbre · les arbres · m.",
-    );
-    expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent(
-      "l'albero · gli alberi · m.",
-    );
+    expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent(/^albero$/);
     expect(within(card('Français')).getByText('arbre')).toHaveClass('headword');
-  });
-
-  it('shows irregular English plurals', () => {
-    renderWithEntries(entries, '/entries/souris');
-    expect(within(card('Anglais')).getByRole('listitem')).toHaveTextContent('mouse · pl. mice');
-  });
-
-  it('collapses identical adjective forms', () => {
-    renderWithEntries(entries, '/entries/grand');
-    expect(within(card('Français')).getByRole('listitem')).toHaveTextContent(
-      'grand · grande · grands · grandes',
-    );
-    expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent('grande · grandi');
   });
 
   it('shows infinitives, and English past forms', () => {

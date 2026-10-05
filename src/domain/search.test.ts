@@ -59,11 +59,6 @@ describe('searchEntries', () => {
     expect(ids({ query: 'the tree' })).toEqual(['arbre']);
   });
 
-  it('matches plurals and adjective forms', () => {
-    expect(ids({ query: 'mice' })).toEqual(['souris']);
-    expect(ids({ query: 'grandi' })).toEqual(['grand']);
-  });
-
   it('matches reflexive verbs and English infinitives without their marker', () => {
     expect(ids({ query: 'lever' })).toEqual(['se-lever']);
     expect(ids({ query: 'levantar' })).toEqual(['se-lever']);
@@ -74,10 +69,10 @@ describe('searchEntries', () => {
 
   it('ranks exact matches, then prefixes, then word prefixes, then substrings', () => {
     const ranked = buildSearchIndex([
-      makeEntry({ type: 'expression', translations: expr('xabc') }, { id: 'substring' }),
-      makeEntry({ type: 'expression', translations: expr('x abc') }, { id: 'word-prefix' }),
-      makeEntry({ type: 'expression', translations: expr('abc') }, { id: 'prefix' }),
-      makeEntry({ type: 'expression', translations: expr('ab') }, { id: 'exact' }),
+      makeEntry({ type: 'word', translations: expr('xabc') }, { id: 'substring' }),
+      makeEntry({ type: 'word', translations: expr('x abc') }, { id: 'word-prefix' }),
+      makeEntry({ type: 'word', translations: expr('abc') }, { id: 'prefix' }),
+      makeEntry({ type: 'word', translations: expr('ab') }, { id: 'exact' }),
     ]);
     const result = searchEntries(ranked, { query: 'ab', langs: ['fr'] }).map((e) => e.id);
     expect(result).toEqual(['exact', 'prefix', 'word-prefix', 'substring']);
@@ -90,8 +85,8 @@ describe('searchEntries', () => {
 
   it('filters by entry type, with or without a query', () => {
     expect(ids({ query: '', types: ['verb'] })).toEqual(['aller', 'se-lever']);
-    expect(ids({ query: 'gr', types: ['noun'] })).toEqual([]);
-    expect(ids({ query: 'gr', types: ['adjective'] })).toEqual(['grand']);
+    expect(ids({ query: 'lev', types: ['word'] })).toEqual([]);
+    expect(ids({ query: 'gr', types: ['word'] })).toEqual(['grand']);
   });
 
   it('treats empty filter lists as "all"', () => {

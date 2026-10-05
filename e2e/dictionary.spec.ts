@@ -17,7 +17,7 @@ test('searches across languages, opens an entry and goes back to the search', as
   await page.getByRole('link', { name: /ragazzo/ }).click();
   await expect(page).toHaveURL(/\/entries\//);
   const italian = page.getByRole('region', { name: 'Italien' });
-  await expect(italian).toContainText('il ragazzo · i ragazzi · m.');
+  await expect(italian.getByRole('listitem')).toHaveText('ragazzo');
   await expect(page.getByRole('region', { name: 'Anglais' })).toContainText('boy');
 
   await page.getByRole('button', { name: '← Retour au dictionnaire' }).click();

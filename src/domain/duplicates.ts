@@ -1,4 +1,4 @@
-import { identityForms } from './forms.ts';
+import { headwords } from './forms.ts';
 import { LANGS, type Lang } from './languages.ts';
 import { matchKeys } from './normalize.ts';
 import type { Entry } from './schemas.ts';
@@ -27,9 +27,7 @@ export function findDuplicates(
     (entry) =>
       !entry.deleted &&
       entry.id !== options.excludeId &&
-      identityForms(entry, lang).some((form) =>
-        matchKeys(form, lang).some((key) => wanted.has(key)),
-      ),
+      headwords(entry, lang).some((form) => matchKeys(form, lang).some((key) => wanted.has(key))),
   );
 }
 
@@ -47,7 +45,7 @@ export function createDuplicateFinder(entries: readonly Entry[]) {
   for (const entry of entries) {
     if (entry.deleted) continue;
     for (const lang of LANGS) {
-      const keys = new Set(identityForms(entry, lang).flatMap((form) => matchKeys(form, lang)));
+      const keys = new Set(headwords(entry, lang).flatMap((form) => matchKeys(form, lang)));
       for (const key of keys) {
         const list = byKey[lang].get(key);
         if (list) list.push(entry);

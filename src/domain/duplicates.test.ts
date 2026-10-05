@@ -39,8 +39,8 @@ describe('findDuplicates', () => {
     expect(ids('fr', 'garçonnet')).toEqual([]);
   });
 
-  it('matches any adjective form', () => {
-    expect(ids('fr', 'grandes')).toEqual(['grand']);
+  it('does not match inflected forms (words are stored in their dictionary form)', () => {
+    expect(ids('fr', 'grandes')).toEqual([]);
   });
 
   it('ignores verb markers', () => {
@@ -73,7 +73,7 @@ describe('createDuplicateFinder', () => {
     const cases = [
       ['fr', 'GARÇON'],
       ['it', "L'albero"],
-      ['fr', 'grandes'],
+      ['fr', 'grand'],
       ['en', 'to go'],
       ['fr', 'lever'],
       ['fr', 'garço'],

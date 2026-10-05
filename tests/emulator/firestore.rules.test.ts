@@ -125,6 +125,8 @@ describe('create', () => {
   it('denies an unknown type or a missing language', async () => {
     const db = ownerDb();
     await assertFails(setDoc(entryRef(db), { ...newEntryDoc(garconContent), type: 'adverb' }));
+    // Types of the first data model (noun, adjective, expression) are gone.
+    await assertFails(setDoc(entryRef(db), { ...newEntryDoc(garconContent), type: 'noun' }));
     const { it: italian, ...threeLanguages } = garconContent.translations;
     await assertFails(
       setDoc(entryRef(db), { ...newEntryDoc(garconContent), translations: threeLanguages }),

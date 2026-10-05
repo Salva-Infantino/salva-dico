@@ -3,10 +3,10 @@ import { filtersToParams, parseFilters, toggle } from './searchParams.ts';
 
 describe('parseFilters', () => {
   it('reads the query, languages and types', () => {
-    expect(parseFilters(new URLSearchParams('q=ragazzo&langs=it,es&types=noun'))).toEqual({
+    expect(parseFilters(new URLSearchParams('q=ragazzo&langs=it,es&types=word'))).toEqual({
       query: 'ragazzo',
       langs: ['it', 'es'],
-      types: ['noun'],
+      types: ['word'],
     });
   });
 
@@ -32,11 +32,11 @@ describe('filtersToParams', () => {
     const params = filtersToParams({
       query: 'l’arbre',
       langs: ['it', 'fr'],
-      types: ['verb', 'noun'],
+      types: ['verb', 'word'],
     });
     expect(params.get('q')).toBe('l’arbre');
     expect(params.get('langs')).toBe('fr,it');
-    expect(params.get('types')).toBe('noun,verb');
+    expect(params.get('types')).toBe('word,verb');
   });
 
   it('round-trips through parseFilters', () => {

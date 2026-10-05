@@ -15,7 +15,7 @@ function list<T extends string>(value: string | null, guard: (v: string) => v is
 }
 
 /**
- * Filters live in the URL (?q=…&langs=it,es&types=noun): going back from an entry
+ * Filters live in the URL (?q=…&langs=it,es&types=word): going back from an entry
  * restores the search, and a search can be bookmarked. Unknown values are ignored.
  */
 export function parseFilters(params: URLSearchParams): DictionaryFilters {

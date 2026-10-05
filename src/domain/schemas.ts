@@ -60,41 +60,11 @@ export const conjugationEnSchema = z.object({
 
 // --- Translations, by entry type --------------------------------------------
 
-export const expressionTranslationSchema = z.object({ text: word });
-
 /**
- * FR / ES / IT noun. `text` is the bare noun, articles are separate fields
- * (ex. IT: article `il`, text `ragazzo`, pluralArticle `i`, plural `ragazzi`).
- * The plural is optional for uncountable nouns, but its two fields go together.
+ * A word or an expression, in its dictionary form: no article, gender or plural
+ * (ex. FR `grand`, IT `ragazzo`, EN `please`).
  */
-export const romanceNounTranslationSchema = z
-  .object({
-    text: word,
-    gender: z.enum(['m', 'f']),
-    article: word,
-    plural: word.optional(),
-    pluralArticle: word.optional(),
-  })
-  .refine((t) => (t.plural === undefined) === (t.pluralArticle === undefined), {
-    message: 'plural and pluralArticle must be provided together',
-    path: ['pluralArticle'],
-  });
-
-/** EN noun: no gender or article; `plural` only when irregular (mouse → mice). */
-export const englishNounTranslationSchema = z.object({
-  text: word,
-  plural: word.optional(),
-});
-
-/** FR / ES / IT adjective: 4 forms, identical forms allowed (IT grande / grande / grandi / grandi). */
-export const romanceAdjectiveTranslationSchema = z.object({
-  mascSing: word,
-  femSing: word,
-  mascPlural: word,
-  femPlural: word,
-});
-
-export const englishAdjectiveTranslationSchema = z.object({ text: word });
+export const wordTranslationSchema = z.object({ text: word });
 
 /** `text` is the infinitive as displayed, including the reflexive form (se lever, alzarsi). */
 export const verbTranslationFrSchema = z.object({
@@ -137,33 +107,13 @@ function translationsSchema<
   });
 }
 
-const expressionContent = {
-  type: z.literal('expression'),
+const wordContent = {
+  type: z.literal('word'),
   translations: translationsSchema(
-    expressionTranslationSchema,
-    expressionTranslationSchema,
-    expressionTranslationSchema,
-    expressionTranslationSchema,
-  ),
-};
-
-const nounContent = {
-  type: z.literal('noun'),
-  translations: translationsSchema(
-    romanceNounTranslationSchema,
-    englishNounTranslationSchema,
-    romanceNounTranslationSchema,
-    romanceNounTranslationSchema,
-  ),
-};
-
-const adjectiveContent = {
-  type: z.literal('adjective'),
-  translations: translationsSchema(
-    romanceAdjectiveTranslationSchema,
-    englishAdjectiveTranslationSchema,
-    romanceAdjectiveTranslationSchema,
-    romanceAdjectiveTranslationSchema,
+    wordTranslationSchema,
+    wordTranslationSchema,
+    wordTranslationSchema,
+    wordTranslationSchema,
   ),
 };
 
@@ -179,17 +129,13 @@ const verbContent = {
 
 /** One content schema per entry type (the AI function generates one type at a time). */
 export const entryContentVariants = {
-  expression: z.object(expressionContent),
-  noun: z.object(nounContent),
-  adjective: z.object(adjectiveContent),
+  word: z.object(wordContent),
   verb: z.object(verbContent),
 };
 
 /** The editable part of an entry: used by the entry form, the AI function and the review screen. */
 export const entryContentSchema = z.discriminatedUnion('type', [
-  entryContentVariants.expression,
-  entryContentVariants.noun,
-  entryContentVariants.adjective,
+  entryContentVariants.word,
   entryContentVariants.verb,
 ]);
 
@@ -210,9 +156,7 @@ const entryMeta = {
 };
 
 export const entrySchema = z.discriminatedUnion('type', [
-  z.object({ ...entryMeta, ...expressionContent }),
-  z.object({ ...entryMeta, ...nounContent }),
-  z.object({ ...entryMeta, ...adjectiveContent }),
+  z.object({ ...entryMeta, ...wordContent }),
   z.object({ ...entryMeta, ...verbContent }),
 ]);
 

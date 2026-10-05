@@ -42,7 +42,7 @@ describe('DictionaryPage', () => {
     for (const lang of ['Français', 'Anglais', 'Espagnol', 'Italien']) {
       expect(within(row).getByRole('img', { name: lang })).toBeInTheDocument();
     }
-    expect(row).toHaveTextContent('le garçon');
+    expect(row).toHaveTextContent('garçon');
     expect(row).toHaveTextContent('boy');
     expect(row).toHaveAttribute('href', '/entries/garcon');
   });
@@ -70,11 +70,11 @@ describe('DictionaryPage', () => {
 
   it('filters by type', async () => {
     renderWithEntries(entries);
-    await userEvent.click(screen.getByRole('button', { name: fr.entryTypes.adjective }));
+    await userEvent.click(screen.getByRole('button', { name: fr.entryTypes.verb }));
 
     expect(await screen.findByText(fr.home.resultCount(1))).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /grande/ })).toBeInTheDocument();
-    expect(screen.getByTestId('location')).toHaveTextContent('/?types=adjective');
+    expect(screen.getByRole('link', { name: /andare/ })).toBeInTheDocument();
+    expect(screen.getByTestId('location')).toHaveTextContent('/?types=verb');
   });
 
   it('restricts the search to the selected languages', async () => {
@@ -94,7 +94,7 @@ describe('DictionaryPage', () => {
     const many = Array.from({ length: 150 }, (_, i) =>
       makeEntry(
         {
-          type: 'expression',
+          type: 'word',
           translations: {
             fr: [{ text: `mot ${String(i)}` }],
             en: [{ text: 'x' }],

@@ -31,7 +31,7 @@ service cloud.firestore {
       return data.keys().hasAll(fields)
         && data.keys().hasOnly(fields)
         && data.schemaVersion is int && data.schemaVersion >= 1
-        && data.type in ['noun', 'verb', 'adjective', 'expression']
+        && data.type in ['word', 'verb']
         && hasLanguages(data.translations)
         && data.mastered is bool
         && data.deleted is bool

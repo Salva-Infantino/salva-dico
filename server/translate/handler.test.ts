@@ -53,7 +53,7 @@ async function read(response: Response) {
 }
 
 const verbRequest = { sourceLang: 'it', text: 'andare', type: 'verb' };
-const nounRequest = { sourceLang: 'fr', text: 'garçon', type: 'noun' };
+const wordRequest = { sourceLang: 'fr', text: 'garçon', type: 'word' };
 
 /** The AI outputs of a verb: the entry without romance conjugations, then fr, es, it. */
 function verbOutputs(content: VerbContent = allerContent): unknown[] {
@@ -109,13 +109,13 @@ describe('POST /api/translate — access control', () => {
 describe('POST /api/translate — generation', () => {
   it('generates an entry of the requested type with its schema, in one request', async () => {
     const { ai, calls } = fakeAi(garconContent);
-    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
+    expect(await read(await handler(ai)(post(wordRequest)))).toEqual({
       status: 200,
       body: { content: garconContent },
     });
     expect(calls).toHaveLength(1);
-    expect(calls[0]?.prompt).toBe('French noun: "garçon"');
-    expect(JSON.stringify(calls[0]?.schema)).toContain('"enum":["noun"]');
+    expect(calls[0]?.prompt).toBe('French word: "garçon"');
+    expect(JSON.stringify(calls[0]?.schema)).toContain('"enum":["word"]');
     expect(calls[0]?.system).toMatch(/vosotros/);
   });
 
@@ -155,12 +155,12 @@ describe('POST /api/translate — generation', () => {
   });
 
   it('detects the type first when none is given', async () => {
-    const { ai, calls } = fakeAi({ type: 'noun' }, garconContent);
+    const { ai, calls } = fakeAi({ type: 'word' }, garconContent);
     const response = await handler(ai)(post({ sourceLang: 'fr', text: 'garçon' }));
     expect(await read(response)).toEqual({ status: 200, body: { content: garconContent } });
     expect(calls.map((call) => call.prompt)).toEqual([
       expect.stringContaining('Classify'),
-      'French noun: "garçon"',
+      'French word: "garçon"',
     ]);
   });
 
@@ -170,12 +170,12 @@ describe('POST /api/translate — generation', () => {
       ...garconContent,
       translations: { ...garconContent.translations, es: [] },
     };
-    expect(await read(await handler(fakeAi(incomplete).ai)(post(nounRequest)))).toEqual({
+    expect(await read(await handler(fakeAi(incomplete).ai)(post(wordRequest)))).toEqual({
       status: 502,
       body: { error: 'invalid_output' },
     });
     // Output of another type than requested is invalid too.
-    expect((await handler(fakeAi(allerContent).ai)(post(nounRequest))).status).toBe(502);
+    expect((await handler(fakeAi(allerContent).ai)(post(wordRequest))).status).toBe(502);
     expect(error).toHaveBeenCalled();
   });
 
@@ -196,7 +196,7 @@ describe('POST /api/translate — generation', () => {
   ] as const)('maps an AI %s error to %i', async (kind, status, error) => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const ai = fakeAi(new AiError(kind, 'boom')).ai;
-    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
+    expect(await read(await handler(ai)(post(wordRequest)))).toEqual({
       status,
       body: { error },
     });
@@ -205,7 +205,7 @@ describe('POST /api/translate — generation', () => {
   it('hides unexpected errors behind ai_unavailable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const ai = fakeAi(new TypeError('bug')).ai;
-    expect(await read(await handler(ai)(post(nounRequest)))).toEqual({
+    expect(await read(await handler(ai)(post(wordRequest)))).toEqual({
       status: 503,
       body: { error: 'ai_unavailable' },
     });
@@ -213,13 +213,13 @@ describe('POST /api/translate — generation', () => {
 
   it('gives the AI an abort signal bounded by the timeout', async () => {
     const { ai, calls } = fakeAi(garconContent);
-    await handler(ai, { timeoutMs: 1234 })(post(nounRequest));
+    await handler(ai, { timeoutMs: 1234 })(post(wordRequest));
     expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
     expect(calls[0]?.signal.aborted).toBe(false);
   });
 
   it('never caches responses', async () => {
-    const response = await handler(fakeAi(garconContent).ai)(post(nounRequest));
+    const response = await handler(fakeAi(garconContent).ai)(post(wordRequest));
     expect(response.headers.get('Cache-Control')).toBe('no-store');
   });
 });

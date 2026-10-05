@@ -14,7 +14,6 @@ import {
   type EntryDraft,
   type TranslationDraft,
 } from './entryDraft.ts';
-import { withAdjectiveHints, withNounHints } from './grammarHints.ts';
 import { DuplicateWarning } from './DuplicateWarning.tsx';
 import { TranslationFields } from './TranslationFields.tsx';
 
@@ -99,11 +98,7 @@ export function EntryForm({
     setDraft((current) => {
       const previous = current.translations[lang][index];
       if (!previous) return current;
-      let next = { ...previous, ...patch };
-      if (lang !== 'en' && current.type === 'noun') next = withNounHints(lang, previous, next);
-      if (lang !== 'en' && current.type === 'adjective') {
-        next = withAdjectiveHints(lang, previous, next);
-      }
+      const next = { ...previous, ...patch };
       const rows = current.translations[lang].map((row, i) => (i === index ? next : row));
       return { ...current, translations: { ...current.translations, [lang]: rows } };
     });

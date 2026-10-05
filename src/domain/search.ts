@@ -1,5 +1,5 @@
 import { foldText, matchKeys, stripArticle, stripVerbMarker } from './normalize.ts';
-import { searchableForms } from './forms.ts';
+import { headwords } from './forms.ts';
 import { LANGS, type EntryType, type Lang } from './languages.ts';
 import type { Entry } from './schemas.ts';
 
@@ -35,7 +35,7 @@ export function buildSearchIndex(entries: readonly Entry[]): SearchIndexItem[] {
 }
 
 function keysFor(entry: Entry, lang: Lang): string[] {
-  return [...new Set(searchableForms(entry, lang).flatMap((form) => matchKeys(form, lang)))];
+  return [...new Set(headwords(entry, lang).flatMap((form) => matchKeys(form, lang)))];
 }
 
 /** Lower is better. */

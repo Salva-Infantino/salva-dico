@@ -30,10 +30,9 @@ function tenseSection(container: HTMLElement, name: RegExp | string): HTMLElemen
 const section = (lang: string) => screen.getByRole('group', { name: lang });
 const save = () => userEvent.click(screen.getByRole('button', { name: fr.editor.save }));
 
-async function fillExpression(values: Record<string, string>) {
-  await userEvent.click(screen.getByRole('radio', { name: fr.entryTypes.expression }));
+async function fillWords(values: Record<string, string>) {
   for (const [lang, text] of Object.entries(values)) {
-    const input = within(section(lang)).getByRole('textbox', { name: fr.editor.fields.expression });
+    const input = within(section(lang)).getByRole('textbox', { name: fr.editor.fields.word });
     await userEvent.clear(input);
     await userEvent.type(input, text);
   }
@@ -54,32 +53,6 @@ describe('EntryEditorPage — new entry', () => {
     );
   });
 
-  it('derives the gender and plural article from the article (lo → m., gli)', async () => {
-    renderWithEntries(entries, '/entries/new?lang=it&mode=manual');
-    const italian = within(section('Italien'));
-    await userEvent.selectOptions(
-      italian.getByRole('combobox', { name: fr.editor.fields.article }),
-      'lo',
-    );
-    expect(italian.getByRole('radio', { name: fr.editor.fields.masculine })).toBeChecked();
-    expect(italian.getByRole('combobox', { name: fr.editor.fields.pluralArticle })).toHaveValue(
-      'gli',
-    );
-  });
-
-  it('pre-fills the other adjective forms', async () => {
-    renderWithEntries(entries, '/entries/new?mode=manual');
-    await userEvent.click(screen.getByRole('radio', { name: fr.entryTypes.adjective }));
-    const spanish = within(section('Espagnol'));
-    await userEvent.type(
-      spanish.getByRole('textbox', { name: fr.editor.fields.mascSing }),
-      'pequeño',
-    );
-    expect(spanish.getByRole('textbox', { name: fr.editor.fields.femPlural })).toHaveValue(
-      'pequeñas',
-    );
-  });
-
   it('shows errors next to the fields and focuses the first one', async () => {
     const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
     await save();
@@ -92,17 +65,14 @@ describe('EntryEditorPage — new entry', () => {
       within(section('Français')).getByRole('textbox', { name: fr.editor.fields.word }),
       'chat',
     );
-    await save();
-    await waitFor(() => {
-      expect(
-        within(section('Français')).getByRole('combobox', { name: fr.editor.fields.article }),
-      ).toHaveFocus();
-    });
+    // Errors follow the edits live after the first attempt.
+    expect(within(section('Français')).queryByText(fr.editor.errors.missingLanguage)).toBeNull();
+    expect(within(section('Anglais')).getByText(fr.editor.errors.missingLanguage)).toBeVisible();
   });
 
   it('saves a valid entry and opens it', async () => {
     const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
-    await fillExpression({
+    await fillWords({
       Français: 'à bientôt',
       Anglais: 'see you soon',
       Espagnol: 'hasta pronto',
@@ -111,7 +81,7 @@ describe('EntryEditorPage — new entry', () => {
     await save();
 
     expect(actions.create).toHaveBeenCalledWith({
-      type: 'expression',
+      type: 'word',
       translations: {
         fr: [{ text: 'à bientôt' }],
         en: [{ text: 'see you soon' }],
@@ -125,12 +95,12 @@ describe('EntryEditorPage — new entry', () => {
 
   it('can add and remove translations in a language', async () => {
     const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
-    await fillExpression({ Français: 'salut', Anglais: 'hi', Espagnol: 'hola', Italien: 'ciao' });
+    await fillWords({ Français: 'salut', Anglais: 'hi', Espagnol: 'hola', Italien: 'ciao' });
     await userEvent.click(
       within(section('Anglais')).getByRole('button', { name: fr.editor.addTranslation }),
     );
     const english = within(section('Anglais'));
-    const inputs = english.getAllByRole('textbox', { name: fr.editor.fields.expression });
+    const inputs = english.getAllByRole('textbox', { name: fr.editor.fields.word });
     await userEvent.type(nth(inputs, 1), 'hey');
     await userEvent.click(
       within(section('Italien')).getByRole('button', { name: fr.editor.addTranslation }),
@@ -148,12 +118,12 @@ describe('EntryEditorPage — new entry', () => {
 
   it('warns about a duplicate and asks before saving it', async () => {
     const { actions } = renderWithEntries(entries, '/entries/new?mode=manual');
-    await fillExpression({ Français: 'le Garçon', Anglais: 'x', Espagnol: 'x', Italien: 'x' });
+    await fillWords({ Français: 'le Garçon', Anglais: 'x', Espagnol: 'x', Italien: 'x' });
 
     await within(section('Français')).findByText(/existe déjà en français/);
     expect(
       within(section('Français')).getByRole('link', {
-        name: fr.editor.openExisting('garçon', fr.entryTypes.noun),
+        name: fr.editor.openExisting('garçon', fr.entryTypes.word),
       }),
     ).toHaveAttribute('href', '/entries/garcon');
 
@@ -169,7 +139,7 @@ describe('EntryEditorPage — new entry', () => {
       makeEntry(garconContent, { id: 'garcon' }),
       makeEntry(
         {
-          type: 'expression',
+          type: 'word',
           translations: {
             fr: [{ text: 'garçon !' }],
             en: [{ text: 'waiter!' }],
@@ -181,7 +151,7 @@ describe('EntryEditorPage — new entry', () => {
       ),
     ];
     renderWithEntries(twins, '/entries/new?mode=manual');
-    await fillExpression({ Français: 'garçon' });
+    await fillWords({ Français: 'garçon' });
 
     const french = section('Français');
     expect(await within(french).findAllByText(/existe déjà en français/)).toHaveLength(1);

@@ -22,14 +22,14 @@ describe('toGeminiSchema', () => {
         $schema: 'https://json-schema.org/draft/2020-12/schema',
         type: 'object',
         properties: {
-          type: { type: 'string', const: 'noun' },
+          type: { type: 'string', const: 'word' },
           text: { type: 'string', minLength: 1, pattern: '\\S' },
         },
         required: ['type', 'text'],
       }),
     ).toEqual({
       type: 'object',
-      properties: { type: { type: 'string', enum: ['noun'] }, text: { type: 'string' } },
+      properties: { type: { type: 'string', enum: ['word'] }, text: { type: 'string' } },
       required: ['type', 'text'],
     });
   });
@@ -41,6 +41,12 @@ describe('entryJsonSchema', () => {
     for (const unsupported of ['const', 'minLength', '$schema', 'pattern']) {
       expect(used.has(unsupported)).toBe(false);
     }
+  });
+
+  it('describes a word as a bare text, without grammar fields', () => {
+    const word = JSON.stringify(entryJsonSchema('word'));
+    expect(word).toContain('"enum":["word"]');
+    for (const field of ['gender', 'article', 'plural']) expect(word).not.toContain(field);
   });
 
   it('describes 6-person tenses as fixed-size tuples', () => {

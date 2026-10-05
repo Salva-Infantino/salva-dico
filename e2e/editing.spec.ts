@@ -13,9 +13,8 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
   await page.getByRole('link', { name: `Ajouter « ${word} »` }).click();
   await page.getByRole('button', { name: 'Manuel' }).click();
 
-  await page.getByRole('radio', { name: 'Expression' }).click();
   const field = (lang: string) =>
-    page.getByRole('group', { name: lang }).getByRole('textbox', { name: 'Expression' });
+    page.getByRole('group', { name: lang }).getByRole('textbox', { name: 'Mot ou expression' });
   await expect(field('Français')).toHaveValue(word);
   await field('Anglais').fill(`${word}-en`);
   await field('Espagnol').fill(`${word}-es`);
@@ -34,7 +33,7 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
     .click();
   await page
     .getByRole('group', { name: 'Anglais' })
-    .getByRole('textbox', { name: 'Expression' })
+    .getByRole('textbox', { name: 'Mot ou expression' })
     .nth(1)
     .fill(`${word}-en2`);
   await page.getByRole('button', { name: 'Enregistrer' }).click();
@@ -58,10 +57,9 @@ test('warns about a duplicate while typing', async ({ page }) => {
   await signIn(page);
   await page.getByRole('link', { name: 'Ajouter une entrée' }).click();
   await page.getByRole('button', { name: 'Manuel' }).click();
-  await page.getByRole('radio', { name: 'Expression' }).click();
   await page
     .getByRole('group', { name: 'Français' })
-    .getByRole('textbox', { name: 'Expression' })
+    .getByRole('textbox', { name: 'Mot ou expression' })
     .fill('Bonjour');
   await expect(page.getByText('« Bonjour » existe déjà en français.')).toBeVisible();
 });

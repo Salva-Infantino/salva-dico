@@ -18,47 +18,47 @@ export function makeEntry<C extends EntryContent>(
 }
 
 export const garconContent = {
-  type: 'noun',
+  type: 'word',
   translations: {
-    fr: [{ text: 'garçon', gender: 'm', article: 'le', plural: 'garçons', pluralArticle: 'les' }],
+    fr: [{ text: 'garçon' }],
     en: [{ text: 'boy' }],
-    es: [{ text: 'chico', gender: 'm', article: 'el', plural: 'chicos', pluralArticle: 'los' }],
-    it: [{ text: 'ragazzo', gender: 'm', article: 'il', plural: 'ragazzi', pluralArticle: 'i' }],
+    es: [{ text: 'chico' }],
+    it: [{ text: 'ragazzo' }],
   },
 } as const satisfies EntryContent;
 
 export const arbreContent = {
-  type: 'noun',
+  type: 'word',
   translations: {
-    fr: [{ text: 'arbre', gender: 'm', article: "l'", plural: 'arbres', pluralArticle: 'les' }],
+    fr: [{ text: 'arbre' }],
     en: [{ text: 'tree' }],
-    es: [{ text: 'árbol', gender: 'm', article: 'el', plural: 'árboles', pluralArticle: 'los' }],
-    it: [{ text: 'albero', gender: 'm', article: "l'", plural: 'alberi', pluralArticle: 'gli' }],
+    es: [{ text: 'árbol' }],
+    it: [{ text: 'albero' }],
   },
 } as const satisfies EntryContent;
 
 export const sourisContent = {
-  type: 'noun',
+  type: 'word',
   translations: {
-    fr: [{ text: 'souris', gender: 'f', article: 'la', plural: 'souris', pluralArticle: 'les' }],
-    en: [{ text: 'mouse', plural: 'mice' }],
-    es: [{ text: 'ratón', gender: 'm', article: 'el', plural: 'ratones', pluralArticle: 'los' }],
-    it: [{ text: 'topo', gender: 'm', article: 'il', plural: 'topi', pluralArticle: 'i' }],
+    fr: [{ text: 'souris' }],
+    en: [{ text: 'mouse' }],
+    es: [{ text: 'ratón' }],
+    it: [{ text: 'topo' }],
   },
 } as const satisfies EntryContent;
 
 export const grandContent = {
-  type: 'adjective',
+  type: 'word',
   translations: {
-    fr: [{ mascSing: 'grand', femSing: 'grande', mascPlural: 'grands', femPlural: 'grandes' }],
+    fr: [{ text: 'grand' }],
     en: [{ text: 'big' }],
-    es: [{ mascSing: 'grande', femSing: 'grande', mascPlural: 'grandes', femPlural: 'grandes' }],
-    it: [{ mascSing: 'grande', femSing: 'grande', mascPlural: 'grandi', femPlural: 'grandi' }],
+    es: [{ text: 'grande' }],
+    it: [{ text: 'grande' }],
   },
 } as const satisfies EntryContent;
 
 export const sVousPlaitContent = {
-  type: 'expression',
+  type: 'word',
   translations: {
     fr: [{ text: "s'il vous plaît" }, { text: "s'il te plaît" }],
     en: [{ text: 'please' }],
