@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { EntryContent } from '../../src/domain/schemas.ts';
 import { allerContent, garconContent, seLeverContent } from '../../src/test/fixtures.ts';
+import { InvalidIdTokenError } from '../firebaseAuth.ts';
 import { AiError, type AiClient, type GenerateJsonOptions } from './aiClient.ts';
 import { createTranslateHandler, type TranslateDeps } from './handler.ts';
 
@@ -29,7 +30,7 @@ function handler(ai: AiClient, overrides: Partial<TranslateDeps> = {}) {
         ? Promise.resolve({ uid: OWNER })
         : token === 'valid-other'
           ? Promise.resolve({ uid: 'someone-else' })
-          : Promise.reject(new Error('invalid token')),
+          : Promise.reject(new InvalidIdTokenError('invalid token')),
     ownerUid: OWNER,
     ai,
     ...overrides,
@@ -82,6 +83,19 @@ describe('POST /api/translate — access control', () => {
     expect(await read(await handler(ai)(post(verbRequest, token)))).toEqual({
       status: 401,
       body: { error: 'unauthorized' },
+    });
+    expect(calls).toHaveLength(0);
+  });
+
+  it('answers 503, not 401, when the token cannot be checked (keys unreachable)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { ai, calls } = fakeAi();
+    const offline = handler(ai, {
+      verifyIdToken: () => Promise.reject(new TypeError('fetch failed')),
+    });
+    expect(await read(await offline(post(verbRequest, 'valid-owner')))).toEqual({
+      status: 503,
+      body: { error: 'ai_unavailable' },
     });
     expect(calls).toHaveLength(0);
   });

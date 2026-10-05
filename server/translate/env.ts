@@ -21,7 +21,7 @@ const serverEnvSchema = z.object({
   // The client config already holds the project id; FIREBASE_PROJECT_ID overrides it.
   FIREBASE_PROJECT_ID: z.string().min(1).optional(),
   VITE_FIREBASE_PROJECT_ID: z.string().min(1).optional(),
-  /** Set by the local dev server only: firebase-admin then trusts Auth emulator tokens. */
+  /** Set by the local dev server only: unsigned Auth emulator tokens are then accepted. */
   FIREBASE_AUTH_EMULATOR_HOST: z.string().optional(),
 });
 
@@ -30,6 +30,8 @@ export interface ServerEnv {
   geminiModels: string[];
   ownerUid: string;
   projectId: string;
+  /** Local Auth emulator (dev server only, demo project): tokens are unsigned. */
+  authEmulator: boolean;
 }
 
 export function parseServerEnv(env: Record<string, string | undefined>): ServerEnv {
@@ -41,9 +43,9 @@ export function parseServerEnv(env: Record<string, string | undefined>): ServerE
       : result.error.issues.map((issue) => issue.path.join('.')).join(', ');
     throw new Error(`Invalid server configuration: ${missing}`);
   }
-  // With FIREBASE_AUTH_EMULATOR_HOST, firebase-admin skips the token signature check:
-  // anyone could forge a token for the (public) owner UID. Only allowed with a demo
-  // project, which exists in the emulators only and can never be a real project.
+  // With FIREBASE_AUTH_EMULATOR_HOST, token signatures are not checked (emulator tokens
+  // are unsigned): anyone could forge a token for the (public) owner UID. Only allowed
+  // with a demo project, which exists in the emulators only and can never be real.
   if (result.data.FIREBASE_AUTH_EMULATOR_HOST && !projectId.startsWith('demo-')) {
     throw new Error(
       'Invalid server configuration: FIREBASE_AUTH_EMULATOR_HOST must not be set for a real project',
@@ -54,5 +56,6 @@ export function parseServerEnv(env: Record<string, string | undefined>): ServerE
     geminiModels: result.data.GEMINI_MODEL,
     ownerUid: result.data.OWNER_UID,
     projectId,
+    authEmulator: Boolean(result.data.FIREBASE_AUTH_EMULATOR_HOST),
   };
 }

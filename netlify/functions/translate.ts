@@ -1,5 +1,4 @@
 import type { Config } from '@netlify/functions';
-import { TRANSLATE_PATH } from '../../src/domain/translateApi.ts';
 import { createIdTokenVerifier } from '../../server/firebaseAuth.ts';
 import { createGeminiClient } from '../../server/translate/aiClient.ts';
 import { parseServerEnv } from '../../server/translate/env.ts';
@@ -12,7 +11,10 @@ function getHandler() {
   if (!handler) {
     const env = parseServerEnv(process.env);
     handler = createTranslateHandler({
-      verifyIdToken: createIdTokenVerifier(env.projectId),
+      verifyIdToken: createIdTokenVerifier({
+        projectId: env.projectId,
+        emulator: env.authEmulator,
+      }),
       ownerUid: env.ownerUid,
       ai: createGeminiClient({ apiKey: env.geminiApiKey, models: env.geminiModels }),
     });
@@ -30,8 +32,10 @@ export default async (request: Request): Promise<Response> => {
   }
 };
 
+// Netlify reads this object by static analysis at build time: values must be literals
+// (an imported constant is silently ignored). translate.test.ts checks the path.
 export const config: Config = {
-  path: TRANSLATE_PATH,
+  path: '/api/translate',
   // Per visitor IP: far above personal use (one AI request takes several seconds), low
   // enough to cap the function invocations an anonymous script could burn.
   rateLimit: { windowLimit: 20, windowSize: 60, aggregateBy: ['ip', 'domain'] },

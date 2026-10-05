@@ -17,7 +17,7 @@ export function devApiPlugin(): Plugin {
       const env = loadEnv(server.config.mode, process.cwd(), '');
       for (const [key, value] of Object.entries(env)) process.env[key] ??= value;
       if (env.VITE_USE_EMULATORS === 'true') {
-        // firebase-admin then verifies tokens issued by the Auth emulator.
+        // The function then accepts the (unsigned) tokens of the Auth emulator.
         const { host, port } = EMULATOR_HOSTS.auth;
         process.env.FIREBASE_AUTH_EMULATOR_HOST ??= `${host}:${String(port)}`;
       }

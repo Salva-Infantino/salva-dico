@@ -11,6 +11,7 @@ describe('parseServerEnv', () => {
       geminiModels: ['gemini-3.8-flash', 'gemini-3.5-flash'],
       ownerUid: 'owner',
       projectId: 'salva-dico',
+      authEmulator: false,
     });
   });
 

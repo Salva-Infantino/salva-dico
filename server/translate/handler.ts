@@ -5,6 +5,7 @@ import {
   type TranslateErrorCode,
   type TranslateResponse,
 } from '../../src/domain/translateApi.ts';
+import { InvalidIdTokenError } from '../firebaseAuth.ts';
 import { AiError, type AiClient } from './aiClient.ts';
 import {
   CONJUGATION_SCHEMAS,
@@ -17,7 +18,10 @@ import {
 import { conjugationPrompt, entryPrompt, SYSTEM_INSTRUCTION, typePrompt } from './prompt.ts';
 
 export interface TranslateDeps {
-  /** Verifies a Firebase ID token and returns its user id; throws when invalid. */
+  /**
+   * Verifies a Firebase ID token and returns its user id. Throws InvalidIdTokenError for
+   * a bad token; any other error (keys unreachable…) is a server-side problem.
+   */
   verifyIdToken: (token: string) => Promise<{ uid: string }>;
   /** The only account allowed to spend the AI quota. */
   ownerUid: string;
@@ -59,8 +63,10 @@ export function createTranslateHandler(deps: TranslateDeps) {
     let uid: string;
     try {
       ({ uid } = await deps.verifyIdToken(token));
-    } catch {
-      return fail('unauthorized');
+    } catch (error) {
+      if (error instanceof InvalidIdTokenError) return fail('unauthorized');
+      console.error('translate: cannot verify the ID token', error);
+      return fail('ai_unavailable');
     }
     if (uid !== deps.ownerUid) return fail('forbidden');
 
