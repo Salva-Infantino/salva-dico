@@ -365,6 +365,10 @@ button.chip[aria-pressed='true'] {
   column-gap: var(--space-1);
 }
 
+.translation-list .details {
+  flex-basis: 100%;
+}
+
 /* Icon button, with a 44px touch target. */
 button.speak-button {
   display: inline-grid;

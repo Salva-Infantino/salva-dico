@@ -45,9 +45,7 @@ describe('EntryDetailPage', () => {
   it('shows infinitives, and English past forms', () => {
     renderWithEntries(entries, '/entries/aller');
     expect(within(card('Espagnol')).getByRole('listitem')).toHaveTextContent('ir');
-    expect(within(card('Anglais')).getByRole('listitem')).toHaveTextContent(
-      'go · went · gone · irrégulier',
-    );
+    expect(within(card('Anglais')).getByText('went · gone · irrégulier')).toHaveClass('details');
   });
 
   it('lists every translation of a language with equal weight', () => {

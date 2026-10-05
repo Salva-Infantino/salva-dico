@@ -53,5 +53,6 @@ function items(entry: Entry, lang: Lang, speech: Speech) {
 function Details({ parts }: { parts: readonly (string | null)[] }) {
   const shown = parts.filter((part): part is string => part !== null);
   if (shown.length === 0) return null;
-  return <span className="grammar details"> · {shown.join(' · ')}</span>;
+  // On its own line, under the word and its speak button.
+  return <span className="grammar details">{shown.join(' · ')}</span>;
 }
