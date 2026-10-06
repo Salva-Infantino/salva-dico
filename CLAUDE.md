@@ -295,7 +295,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   MIT license.
 - Redesign (2026-10-06), from the owner's mockups (PDF), in 3 steps. Step 1 **done**: tokens, Figtree,
   language badges, app shell (tab bar / sidebar), dictionary (cards / table + preview), entry page, quiz card,
-  derived dark theme. Step 2: the other screens in the same style. Step 3: dark theme polish, README screenshots.
+  derived dark theme. Step 2 **done**: editor, AI review, conjugation, quiz setup and score, settings,
+  sign-in and error pages (shared `PageHeader`); the phone a11y E2E test also checks for horizontal overflow.
+  Step 3 (next): dark theme polish, README screenshots (`pnpm docs:screenshots` needs updating to the new UI).
 - Roadmap complete. Deployed on Netlify (`salva-dico.netlify.app`), sign-in checked in production
   (2026-10-06). CSP errors from `about:srcdoc` in the console come from Netlify's injected badge, not the app.
 
