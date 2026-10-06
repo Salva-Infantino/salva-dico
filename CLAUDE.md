@@ -53,6 +53,7 @@ improve all four languages together, so an entry is only "known" if it is known 
 
 Styling: plain CSS (CSS modules or a single well-organized stylesheet with CSS custom properties).
 No UI framework unless we agree otherwise. Theme follows the system (`prefers-color-scheme`), no manual toggle.
+Font: Figtree, bundled as woff2 (SIL OFL) for offline use.
 
 ## 4. Security model
 
@@ -162,13 +163,15 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 ## 7. Features and screens
 
 ### 7.1 Dictionary (home)
-- One search bar that searches the 4 languages at once, with language filter chips (🇫🇷 🇬🇧 🇪🇸 🇮🇹, bundled SVG flags).
+- One search bar that always searches the 4 languages at once. Language chips (FR EN ES IT) choose the
+  language shown first in each row, which also sets the alphabetical order (column headers on desktop).
 - Search is case-insensitive, accent-insensitive, and ignores articles.
 - Type filter (word / verb).
-- Compact list; each row shows the entry in the 4 languages with flags.
+- Phones: one card per entry (shown language first, the 3 others as colored pills), alphabetical sections.
+  Desktop: a table of the 4 languages with a preview panel of the selected entry.
 
 ### 7.2 Entry detail
-- The 4 languages on **one screen**, each with its flag.
+- The 4 languages on **one screen**: the shown language large, then the 3 others, each with its badge.
 - Secondary details (English past forms of verbs) are shown **discreetly**: lighter font weight or italic,
   so the main word stands out.
 - **Verbs:** the 4 infinitives side by side. Tapping one opens that language's conjugation
@@ -200,8 +203,8 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 **Session:**
 - The card shows the entry in the source language (all its translations).
 - Below it, one face-down card per selected target language. I can flip them one by one or all at once.
-- Swipe right = "je connais", swipe left = "à réviser". Swiping is allowed without flipping.
-- Knowledge is **global per entry**: one unknown language means the whole entry goes to "à réviser".
+- Swipe right = "je connais", swipe left = "à revoir". Swiping is allowed without flipping.
+- Knowledge is **global per entry**: one unknown language means the whole entry goes to "à revoir".
 - "À réviser" cards come back **once** at the end of the session, then the session ends.
 - Nothing is persisted between sessions except the manual mastered switch (and the last quiz settings,
   per device). No stats history.
@@ -217,9 +220,10 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 
 ## 8. UI guidelines
 - Mobile-first, responsive and comfortable on desktop. Fast to use daily: few taps per action.
-- Visual and clean. Flags identify languages everywhere.
-- **Flags:** flag emojis do **not** render on Windows (they show "FR", "IT"…). Use SVG flags (bundled, offline)
-  instead of emoji.
+- Visual and clean, following the owner's redesign mockups (2026-10-06): lavender background, indigo accent,
+  raised cards and buttons (solid "ledge" shadow), floating tab bar on phones, sidebar on desktop.
+- Languages are identified everywhere by a code badge (FR, EN, ES, IT) in the language's own color
+  (FR blue, EN red, ES yellow, IT green). No flags (owner's choice in the redesign; flag emojis also fail on Windows).
 - Accessible: sufficient contrast in both themes, visible focus states, swipe actions also reachable by buttons.
 
 ## 9. AI function (`netlify/functions/translate`)
@@ -260,7 +264,7 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - Step 3 (Dictionary read): **done** (2026-10-04). Alphabetical list (French collation), URL-backed
   filters, progressive rendering (100 rows + IntersectionObserver, `content-visibility`), entry detail.
   Dev data lives in the emulators only (`pnpm dev:emulators`, `scripts/seed-emulator.ts`); E2E tests run on
-  a seeded emulator build. English flag = British flag (owner's choice, despite American English content).
+  a seeded emulator build.
 - Step 4 (Manual CRUD): **done** (2026-10-04). Data router (`createBrowserRouter`, `useBlocker` for unsaved
   changes, French error page). Editor for nouns, adjectives and expressions with live grammar hints (gender
   from article, plural article, adjective forms) and duplicate warnings; verbs are edited in step 5.
@@ -289,6 +293,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   every screen in both themes; focus moves to the page heading after navigation and the tab title names
   the page; `lang` on words. README rewritten for the portfolio, screenshots from `pnpm docs:screenshots`,
   MIT license.
+- Redesign (2026-10-06), from the owner's mockups (PDF), in 3 steps. Step 1 **done**: tokens, Figtree,
+  language badges, app shell (tab bar / sidebar), dictionary (cards / table + preview), entry page, quiz card,
+  derived dark theme. Step 2: the other screens in the same style. Step 3: dark theme polish, README screenshots.
 - Roadmap complete. Deployed on Netlify (`salva-dico.netlify.app`), sign-in checked in production
   (2026-10-06). CSP errors from `about:srcdoc` in the console come from Netlify's injected badge, not the app.
 
