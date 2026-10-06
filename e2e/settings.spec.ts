@@ -45,7 +45,11 @@ test('exports the dictionary, imports a modified export, and signs out', async (
   await page.getByRole('button', { name: 'Importer 1 entrée' }).click();
   await expect(page.getByRole('status').filter({ hasText: '1 entrée importée.' })).toBeVisible();
 
-  await page.getByRole('link', { name: '← Retour au dictionnaire' }).click();
+  // Tab bar on phones, sidebar on wide screens.
+  await page
+    .getByRole('link', { name: /^(Dico|Dictionnaire)$/ })
+    .filter({ visible: true })
+    .click();
   await page.getByRole('searchbox', { name: 'Rechercher' }).fill(`${word}-it`);
   await expect(page.getByText('1 résultat')).toBeVisible();
 

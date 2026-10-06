@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
+import { PageHeader } from '../../components/PageHeader.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { ENTRY_TYPES, LANGS } from '../../domain/languages.ts';
 import {
@@ -39,10 +41,7 @@ export function QuizSetupPage() {
 
   return (
     <main className="page quiz-setup">
-      <nav>
-        <Link to="/">← {fr.quiz.backHome}</Link>
-      </nav>
-      <h1>{fr.quiz.setupTitle}</h1>
+      <PageHeader title={fr.quiz.setupTitle} />
 
       <form
         className="quiz-form"
@@ -51,11 +50,11 @@ export function QuizSetupPage() {
           if (canStart) start();
         }}
       >
-        <fieldset>
+        <fieldset className="setup-card">
           <legend>{fr.quiz.source}</legend>
-          <div className="chips">
+          <div className="choice-group">
             {LANGS.map((lang) => (
-              <label key={lang} className="chip-choice">
+              <label key={lang} className={`chip-choice lang-${lang}`}>
                 <input
                   type="radio"
                   name="quiz-source"
@@ -71,11 +70,11 @@ export function QuizSetupPage() {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="setup-card">
           <legend>{fr.quiz.targets}</legend>
-          <div className="chips">
+          <div className="choice-group">
             {LANGS.filter((lang) => lang !== settings.source).map((lang) => (
-              <label key={lang} className="chip-choice">
+              <label key={lang} className={`chip-choice lang-${lang}`}>
                 <input
                   type="checkbox"
                   checked={settings.targets.includes(lang)}
@@ -92,9 +91,9 @@ export function QuizSetupPage() {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="setup-card">
           <legend>{fr.quiz.types}</legend>
-          <div className="chips">
+          <div className="choice-group">
             {ENTRY_TYPES.map((type) => (
               <label key={type} className="chip-choice">
                 <input
@@ -115,18 +114,20 @@ export function QuizSetupPage() {
           type="button"
           role="switch"
           aria-checked={settings.excludeMastered}
-          className="switch"
+          className="switch-row setup-card"
           onClick={() => {
             update({ excludeMastered: !settings.excludeMastered });
           }}
         >
+          <span className="switch-text">
+            <strong>{fr.quiz.excludeMastered}</strong>
+          </span>
           <span className="switch-track" aria-hidden="true" />
-          {fr.quiz.excludeMastered}
         </button>
 
-        <fieldset>
+        <fieldset className="setup-card">
           <legend>{fr.quiz.order}</legend>
-          <div className="chips">
+          <div className="choice-group">
             {QUIZ_ORDERS.map((order) => (
               <label key={order} className="chip-choice">
                 <input
@@ -143,9 +144,9 @@ export function QuizSetupPage() {
           </div>
         </fieldset>
 
-        <fieldset>
+        <fieldset className="setup-card">
           <legend>{fr.quiz.count}</legend>
-          <div className="chips">
+          <div className="choice-group">
             {QUIZ_COUNTS.map((count) => (
               <label key={count} className="chip-choice">
                 <input
@@ -162,13 +163,13 @@ export function QuizSetupPage() {
           </div>
         </fieldset>
 
-        <p className="muted" aria-live="polite">
-          {available === 0 ? fr.quiz.none : fr.quiz.available(available)}
-        </p>
-
-        <div className="form-actions">
+        <div className="start-bar">
+          <p className="muted" aria-live="polite">
+            {available === 0 ? fr.quiz.none : fr.quiz.available(available)}
+          </p>
           <button type="submit" disabled={!canStart}>
             {fr.quiz.start(cardCount)}
+            <Icon name="arrowRight" />
           </button>
         </div>
       </form>

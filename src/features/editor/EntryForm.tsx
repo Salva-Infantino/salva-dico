@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { useBlocker } from 'react-router';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
 import { LANGS, type Lang } from '../../domain/languages.ts';
@@ -136,20 +137,22 @@ export function EntryForm({
     <form ref={form} className="entry-form" noValidate onSubmit={submit}>
       <fieldset className="type-choice">
         <legend>{fr.editor.type}</legend>
-        {EDITABLE_TYPES.map((type) => (
-          <label key={type} className="chip-choice">
-            <input
-              type="radio"
-              name="entry-type"
-              value={type}
-              checked={draft.type === type}
-              onChange={() => {
-                setDraft((current) => ({ ...current, type }));
-              }}
-            />
-            {fr.entryTypes[type]}
-          </label>
-        ))}
+        <div className="segmented">
+          {EDITABLE_TYPES.map((type) => (
+            <label key={type}>
+              <input
+                type="radio"
+                name="entry-type"
+                value={type}
+                checked={draft.type === type}
+                onChange={() => {
+                  setDraft((current) => ({ ...current, type }));
+                }}
+              />
+              {fr.entryTypes[type]}
+            </label>
+          ))}
+        </div>
       </fieldset>
 
       {validation && !validation.ok && (
@@ -162,7 +165,7 @@ export function EntryForm({
         const rows = draft.translations[lang];
         const langError = errors[lang];
         return (
-          <fieldset key={lang} className="lang-fieldset">
+          <fieldset key={lang} className={`lang-fieldset lang-${lang}`}>
             <legend className="lang-card-title">
               <LangBadge lang={lang} decorative />
               {fr.langs[lang]}
@@ -188,7 +191,7 @@ export function EntryForm({
                   {rows.length > 1 && (
                     <button
                       type="button"
-                      className="link-button"
+                      className="text-button remove-row"
                       onClick={() => {
                         setRows(
                           lang,
@@ -196,6 +199,7 @@ export function EntryForm({
                         );
                       }}
                     >
+                      <Icon name="trash" />
                       {fr.editor.removeTranslation}
                     </button>
                   )}
@@ -205,18 +209,19 @@ export function EntryForm({
 
             <button
               type="button"
-              className="secondary"
+              className="add-row"
               onClick={() => {
                 setRows(lang, [...rows, emptyTranslation()]);
               }}
             >
+              <Icon name="plus" />
               {fr.editor.addTranslation}
             </button>
           </fieldset>
         );
       })}
 
-      <div className="form-actions">
+      <div className="form-actions bottom-actions">
         <button type="button" className="secondary" onClick={onCancel}>
           {fr.editor.cancel}
         </button>

@@ -1,3 +1,4 @@
+import { Icon } from '../../components/Icon.tsx';
 import { AUXILIARIES, IMPERATIVE, IMPERATIVE_LABELS, TENSES } from '../../domain/conjugation.ts';
 import { PERSON_LABELS, type Lang } from '../../domain/languages.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -123,7 +124,10 @@ export function ConjugationFields({ lang, row, index, errors, onChange }: Conjug
         return (
           <details key={tense.key} className="tense-fields">
             <summary className={hasError(`conjugation.${tense.key}.`) ? 'has-error' : undefined}>
-              <TenseName lang={lang} tense={tense} />
+              <span>
+                <TenseName lang={lang} tense={tense} />
+              </span>
+              <Icon name="chevronDown" />
             </summary>
             <div className="field-grid">
               {PERSON_LABELS[lang].map((pronoun, person) => (
@@ -146,7 +150,10 @@ export function ConjugationFields({ lang, row, index, errors, onChange }: Conjug
 
       <details className="tense-fields">
         <summary className={hasError(`conjugation.${imperative.key}.`) ? 'has-error' : undefined}>
-          <TenseName lang={lang} tense={imperative} />
+          <span>
+            <TenseName lang={lang} tense={imperative} />
+          </span>
+          <Icon name="chevronDown" />
         </summary>
         <div className="field-grid imperative-grid">
           {IMPERATIVE_LABELS[lang].map((pronoun, person) => (

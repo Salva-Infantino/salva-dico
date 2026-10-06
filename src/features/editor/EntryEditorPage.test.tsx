@@ -45,9 +45,7 @@ describe('EntryEditorPage — new entry', () => {
     expect(word).toHaveValue('ragazzino');
     expect(word).toHaveFocus();
     // The start language comes first.
-    expect(screen.getAllByRole('group').map((g) => g.getAttribute('class'))).toContain(
-      'lang-fieldset',
-    );
+    expect(section('Italien')).toHaveClass('lang-fieldset');
     expect(screen.getAllByRole('group', { name: /Italien|Français|Anglais|Espagnol/ })[0]).toBe(
       section('Italien'),
     );

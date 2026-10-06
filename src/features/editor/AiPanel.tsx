@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { useTranslate } from '../../data/TranslatorContext.ts';
 import type { TranslateFailure } from '../../data/translateClient.ts';
@@ -79,11 +80,12 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
   };
 
   return (
-    <form className="ai-panel" noValidate onSubmit={submit}>
-      <fieldset className="lang-choice">
+    <form className="ai-panel panel" noValidate onSubmit={submit}>
+      <p className="muted">{fr.ai.intro}</p>
+      <fieldset className="choice-group">
         <legend>{fr.ai.lang}</legend>
         {LANGS.map((lang) => (
-          <label key={lang} className="chip-choice">
+          <label key={lang} className={`chip-choice lang-${lang}`}>
             <input
               type="radio"
               name="ai-lang"
@@ -129,14 +131,14 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
       </div>
 
       <DuplicateWarning word={value.text} lang={value.lang} entries={duplicates} />
-      {!online && <p className="muted">{fr.ai.offline}</p>}
+      {!online && <p className="warning">{fr.ai.offline}</p>}
       {error && (
         <p role="alert" className="field-error">
           {fr.ai.errors[error]}
         </p>
       )}
 
-      <div className="form-actions">
+      <div className="panel-actions">
         {loading ? (
           <>
             <span role="status" className="muted">
@@ -148,6 +150,7 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
           </>
         ) : (
           <button type="submit" disabled={!online || value.text.trim() === ''}>
+            <Icon name="sparkles" />
             {fr.ai.submit}
           </button>
         )}

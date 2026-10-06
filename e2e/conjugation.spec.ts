@@ -13,7 +13,7 @@ test('opens the conjugation of one language from a verb entry', async ({ page })
   await expect(passato).toContainText('io sono andato/a');
   await expect(passato).toContainText('passé composé');
 
-  await page.getByRole('link', { name: "← Retour à l'entrée" }).click();
+  await page.getByRole('link', { name: "Retour à l'entrée" }).click();
   await expect(page.getByRole('link', { name: 'Conjugaison de « andare »' })).toBeVisible();
 });
 

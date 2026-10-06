@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Icon } from '../../components/Icon.tsx';
 import { useNotify } from '../../components/notifications/NotificationsContext.ts';
+import { PageHeader } from '../../components/PageHeader.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { useEntryActions } from '../../data/EntryActionsContext.ts';
 import { isLang } from '../../domain/languages.ts';
@@ -58,7 +60,15 @@ function EditEntry({ id }: { id: string }) {
 
   return (
     <main className="page editor">
-      <h1>{fr.editor.editTitle}</h1>
+      <PageHeader
+        title={fr.editor.editTitle}
+        back={{
+          label: fr.common.back,
+          onClick: () => {
+            goBack(`/entries/${id}`);
+          },
+        }}
+      />
       <EntryForm
         initialDraft={draft}
         startLang="fr"
@@ -106,8 +116,23 @@ function NewEntry() {
   if (review) {
     return (
       <main className="page editor">
-        <h1>{fr.ai.reviewTitle}</h1>
-        <p className="muted">{fr.ai.reviewHint}</p>
+        <PageHeader
+          title={fr.ai.reviewTitle}
+          back={{
+            label: fr.common.back,
+            onClick: () => {
+              setReview(null);
+            },
+          }}
+        >
+          <p className="ai-hint">
+            <span className="type-badge">
+              <Icon name="sparkles" />
+              {fr.ai.reviewBadge}
+            </span>
+            {fr.ai.reviewHint}
+          </p>
+        </PageHeader>
         <EntryForm
           initialDraft={review}
           startLang={request.lang}
@@ -124,13 +149,20 @@ function NewEntry() {
 
   return (
     <main className="page editor">
-      <h1>{fr.editor.newTitle}</h1>
-      <div className="mode-switch" role="group" aria-label={fr.ai.modeLabel}>
+      <PageHeader
+        title={fr.editor.newTitle}
+        back={{
+          label: fr.common.back,
+          onClick: () => {
+            goBack('/');
+          },
+        }}
+      />
+      <div className="segmented mode-switch" role="group" aria-label={fr.ai.modeLabel}>
         {(['ai', 'manual'] as const).map((value) => (
           <button
             key={value}
             type="button"
-            className="chip"
             aria-pressed={mode === value}
             onClick={() => {
               if (value === 'manual' && mode !== 'manual')
@@ -138,6 +170,7 @@ function NewEntry() {
               setMode(value);
             }}
           >
+            {value === 'ai' && <Icon name="sparkles" />}
             {fr.ai.modes[value]}
           </button>
         ))}

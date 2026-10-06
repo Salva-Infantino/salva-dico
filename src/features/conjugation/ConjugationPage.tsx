@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router';
+import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { IMPERATIVE, IMPERATIVE_LABELS, TENSES, withPronoun } from '../../domain/conjugation.ts';
@@ -26,7 +27,7 @@ export function ConjugationPage() {
 
   if (!entry || !verb || !isLang(lang)) {
     return (
-      <main className="page">
+      <main className="page page-centered">
         <h1>{fr.conjugation.notFound}</h1>
         <Link to={entry ? `/entries/${entry.id}` : '/'}>{fr.conjugation.back}</Link>
       </main>
@@ -35,13 +36,30 @@ export function ConjugationPage() {
 
   return (
     <main className="page conjugation">
-      <nav>
-        <Link to={`/entries/${entry.id}`}>← {fr.conjugation.back}</Link>
+      <nav className="page-top">
+        <Link
+          to={`/entries/${entry.id}?lang=${lang}`}
+          className="round-button"
+          aria-label={fr.conjugation.back}
+          title={fr.conjugation.back}
+        >
+          <Icon name="back" />
+        </Link>
       </nav>
-      <h1 className="conjugation-title">
-        <LangBadge lang={lang} />
-        <span lang={lang}>{verb.text}</span>
-      </h1>
+      <header className={`hero lang-${lang}`}>
+        <p className="hero-kind">
+          <LangBadge lang={lang} decorative />
+          {fr.entry.kind(fr.langs[lang], fr.conjugation.title)}
+        </p>
+        <h1 className="hero-words" lang={lang}>
+          {verb.text}
+        </h1>
+        {'auxiliary' in verb.conjugation && (
+          <p className="hero-meta">
+            {fr.conjugation.auxiliary} : <strong lang={lang}>{verb.conjugation.auxiliary}</strong>
+          </p>
+        )}
+      </header>
       {lang === 'en' ? (
         <EnglishForms conjugation={verb.conjugation as ConjugationEN} />
       ) : (
@@ -53,7 +71,7 @@ export function ConjugationPage() {
 
 function EnglishForms({ conjugation }: { conjugation: ConjugationEN }) {
   return (
-    <dl className="english-forms" lang="en">
+    <dl className="english-forms tense-card" lang="en">
       <dt>{fr.conjugation.base}</dt>
       <dd>{conjugation.base}</dd>
       <dt>{fr.conjugation.pastSimple}</dt>
@@ -78,11 +96,6 @@ function RomanceTenses({
   const imperative = (conjugation as unknown as Record<string, Imperative>)[IMPERATIVE[lang].key];
   return (
     <>
-      {'auxiliary' in conjugation && (
-        <p className="muted">
-          {fr.conjugation.auxiliary} : <strong lang={lang}>{conjugation.auxiliary}</strong>
-        </p>
-      )}
       <div className="tense-grid" lang={lang}>
         {TENSES[lang].map((tense) => (
           <section key={tense.key} className="tense-card" aria-labelledby={`tense-${tense.key}`}>
@@ -95,7 +108,7 @@ function RomanceTenses({
                 return (
                   <li key={person}>
                     <span className="grammar">{shown.pronoun}</span>
-                    {shown.form}
+                    <strong>{shown.form}</strong>
                   </li>
                 );
               })}

@@ -1,3 +1,4 @@
+import { BrandMark } from '../components/AppShell.tsx';
 import { fr } from '../i18n/fr.ts';
 import { useAuth } from './AuthContext.ts';
 
@@ -6,8 +7,9 @@ export function AccessDeniedPage({ uid, email }: { uid: string; email: string | 
   const { signOut } = useAuth();
 
   return (
-    <main className="page page-centered">
-      <h1>{fr.auth.deniedTitle}</h1>
+    <main className="page page-centered welcome">
+      <BrandMark />
+      <h1 className="display-title">{fr.auth.deniedTitle}</h1>
       <p>{fr.auth.deniedText}</p>
       {email && <p className="muted">{email}</p>}
       <p className="muted">

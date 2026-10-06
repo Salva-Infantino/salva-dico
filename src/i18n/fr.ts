@@ -8,6 +8,7 @@ export const fr = {
   },
   common: {
     loading: 'Chargement…',
+    back: 'Retour',
   },
   langs: {
     fr: 'Français',
@@ -96,6 +97,9 @@ export const fr = {
     reviewTitle: 'Vérifie la traduction',
     reviewHint:
       'Rien n’est enregistré tant que tu n’as pas validé. Tous les champs sont modifiables.',
+    reviewBadge: 'Proposé par l’IA',
+    intro:
+      'Tape un mot dans n’importe quelle langue : l’IA propose les 3 autres langues et, pour un verbe, ses conjugaisons.',
     backToRequest: 'Recommencer',
     errors: {
       network: 'Connexion impossible. Vérifie ta connexion et réessaie.',

@@ -8,6 +8,14 @@ test.skip(({ browserName }) => browserName !== 'chromium', 'Audited once, in Chr
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22a', 'wcag22aa'];
 
+/** Wider-than-screen content makes phones zoom out and shifts the fixed bars. */
+async function expectNoHorizontalOverflow(page: Page, screen: string) {
+  const overflow = await page.evaluate(
+    'document.documentElement.scrollWidth - document.documentElement.clientWidth',
+  );
+  expect(overflow, `${screen}: horizontal overflow`).toBe(0);
+}
+
 /** Fails with a readable list of violations (rule, impact, elements). */
 async function audit(page: Page, screen: string) {
   // Let entrance animations finish: axe measures contrast on the final colors.
@@ -67,13 +75,26 @@ for (const colorScheme of ['light', 'dark'] as const) {
       test('dictionary, entry page and quiz card', async ({ page }) => {
         await signIn(page);
         await audit(page, 'dictionary (phone)');
+        await expectNoHorizontalOverflow(page, 'dictionary (phone)');
 
         await page.getByRole('searchbox', { name: 'Rechercher' }).fill('aller');
         await entryRow(page, 'andare').click();
         await expect(page.getByRole('heading', { level: 1, name: 'aller' })).toBeVisible();
         await audit(page, 'entry page (phone)');
+        await expectNoHorizontalOverflow(page, 'entry page (phone)');
+
+        await page.goto('/entries/new');
+        await expect(page.getByRole('button', { name: 'Traduire avec l’IA' })).toBeVisible();
+        await audit(page, 'AI mode (phone)');
+        await expectNoHorizontalOverflow(page, 'AI mode (phone)');
+
+        await page.goto('/settings');
+        await expect(page.getByRole('heading', { level: 1, name: 'Réglages' })).toBeVisible();
+        await expectNoHorizontalOverflow(page, 'settings (phone)');
 
         await page.goto('/quiz');
+        await audit(page, 'quiz setup (phone)');
+        await expectNoHorizontalOverflow(page, 'quiz setup (phone)');
         await page.getByRole('checkbox', { name: 'Mot' }).uncheck();
         await page.getByRole('button', { name: 'Commencer (2 cartes)' }).click();
         await page.keyboard.press('Space');

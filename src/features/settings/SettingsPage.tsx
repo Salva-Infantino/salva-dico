@@ -1,7 +1,9 @@
 import { useId, useState, type ChangeEvent } from 'react';
-import { Link } from 'react-router';
 import { useAuth } from '../../auth/AuthContext.ts';
+import { userInitial } from '../../auth/userInitial.ts';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
+import { Icon } from '../../components/Icon.tsx';
+import { PageHeader } from '../../components/PageHeader.tsx';
 import { useNotify } from '../../components/notifications/NotificationsContext.ts';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { useEntryActions } from '../../data/EntryActionsContext.ts';
@@ -70,20 +72,24 @@ export function SettingsPage() {
 
   return (
     <main className="page settings">
-      <nav>
-        <Link to="/">← {fr.settings.back}</Link>
-      </nav>
-      <h1>{fr.settings.title}</h1>
+      <PageHeader title={fr.settings.title} />
 
       <section className="settings-section" aria-labelledby="settings-backup">
-        <h2 id="settings-backup">{fr.settings.backup}</h2>
+        <h2 id="settings-backup" className="settings-title">
+          <span className="settings-icon" aria-hidden="true">
+            <Icon name="download" />
+          </span>
+          {fr.settings.backup}
+        </h2>
         <p className="muted">{fr.settings.backupHint}</p>
         <div className="settings-actions">
           <button type="button" onClick={exportAll} disabled={liveCount === 0}>
+            <Icon name="download" />
             {fr.settings.export(liveCount)}
           </button>
           {/* A label styled as a button keeps the native, accessible file picker. */}
           <label htmlFor={fileInputId} className="button secondary file-button">
+            <Icon name="upload" />
             {fr.settings.import}
           </label>
           <input
@@ -141,17 +147,33 @@ export function SettingsPage() {
       </section>
 
       <section className="settings-section" aria-labelledby="settings-account">
-        <h2 id="settings-account">{fr.settings.account}</h2>
-        {authState.status === 'signedIn' && authState.user.email && (
-          <p className="muted">{fr.settings.signedInAs(authState.user.email)}</p>
+        <h2 id="settings-account" className="settings-title">
+          <span className="settings-icon" aria-hidden="true">
+            <Icon name="user" />
+          </span>
+          {fr.settings.account}
+        </h2>
+        {authState.status === 'signedIn' && (
+          <div className="account-row">
+            <span className="avatar" aria-hidden="true">
+              {userInitial(authState.user)}
+            </span>
+            <span>
+              {authState.user.name && <strong>{authState.user.name}</strong>}
+              {authState.user.email && (
+                <span className="muted">{fr.settings.signedInAs(authState.user.email)}</span>
+              )}
+            </span>
+          </div>
         )}
         <button
           type="button"
-          className="secondary"
+          className="danger-outline"
           onClick={() => {
             setConfirmSignOut(true);
           }}
         >
+          <Icon name="logout" />
           {fr.auth.signOut}
         </button>
       </section>

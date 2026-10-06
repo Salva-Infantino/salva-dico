@@ -105,7 +105,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
   if (quiz.done) {
     return (
       <main className="page quiz-end">
-        <h1>{fr.quiz.doneTitle}</h1>
+        <h1 className="display-title">{fr.quiz.doneTitle}</h1>
         {quiz.total > 0 ? (
           <QuizScore known={quiz.knownFirstTry} total={quiz.total} />
         ) : (
@@ -113,6 +113,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
         )}
         <div className="quiz-end-actions">
           <Link className="button" to="/quiz">
+            <Icon name="refresh" />
             {fr.quiz.again}
           </Link>
           <Link className="button secondary" to="/">
