@@ -1,4 +1,5 @@
 import { headwords } from './forms.ts';
+import { foldText } from './normalize.ts';
 import type { Lang } from './languages.ts';
 import type { Entry } from './schemas.ts';
 
@@ -7,8 +8,13 @@ const collators = new Map<Lang, Intl.Collator>();
 function collator(lang: Lang): Intl.Collator {
   let result = collators.get(lang);
   if (!result) {
-    // Case- and accent-insensitive at the first level, numeric for "mot 2" < "mot 10".
-    result = new Intl.Collator(lang, { sensitivity: 'base', numeric: true });
+    // Case- and accent-insensitive at the first level, numeric for "mot 2" < "mot 10",
+    // and "¿qué tal?" sorted under Q.
+    result = new Intl.Collator(lang, {
+      sensitivity: 'base',
+      numeric: true,
+      ignorePunctuation: true,
+    });
     collators.set(lang, result);
   }
   return result;
@@ -21,4 +27,10 @@ export function sortAlphabetically(entries: readonly Entry[], lang: Lang = 'fr')
     .map((entry) => ({ entry, key: headwords(entry, lang)[0] ?? '' }))
     .sort((a, b) => compare(a.key, b.key))
     .map(({ entry }) => entry);
+}
+
+/** Letter of the alphabetical section of an entry in `lang` ("É" → "E"), or "#". */
+export function sectionLetter(entry: Entry, lang: Lang): string {
+  const first = foldText(headwords(entry, lang)[0] ?? '').replace(/^[^a-z0-9]+/, '')[0];
+  return first && /[a-z]/.test(first) ? first.toUpperCase() : '#';
 }

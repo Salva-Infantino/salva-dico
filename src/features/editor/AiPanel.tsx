@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
-import { Flag } from '../../components/Flag.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
 import { useTranslate } from '../../data/TranslatorContext.ts';
 import type { TranslateFailure } from '../../data/translateClient.ts';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
@@ -93,7 +93,7 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
                 onChange({ ...value, lang });
               }}
             />
-            <Flag lang={lang} decorative />
+            <LangBadge lang={lang} decorative />
             {fr.langs[lang]}
           </label>
         ))}

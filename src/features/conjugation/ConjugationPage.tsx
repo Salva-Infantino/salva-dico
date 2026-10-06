@@ -1,8 +1,8 @@
 import { Link, useParams } from 'react-router';
-import { Flag } from '../../components/Flag.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { IMPERATIVE, IMPERATIVE_LABELS, TENSES, withPronoun } from '../../domain/conjugation.ts';
-import { LANGS, type Lang, type RomanceLang } from '../../domain/languages.ts';
+import { isLang, type RomanceLang } from '../../domain/languages.ts';
 import type {
   ConjugationEN,
   ConjugationES,
@@ -14,9 +14,6 @@ import { fr } from '../../i18n/fr.ts';
 import { TenseName } from './TenseName.tsx';
 
 type RomanceConjugation = ConjugationFR | ConjugationES | ConjugationIT;
-
-const isLang = (value: string | undefined): value is Lang =>
-  value !== undefined && (LANGS as readonly string[]).includes(value);
 
 /** /entries/:id/conjugation/:lang/:index — every tense of one verb, in one language. */
 export function ConjugationPage() {
@@ -42,7 +39,7 @@ export function ConjugationPage() {
         <Link to={`/entries/${entry.id}`}>← {fr.conjugation.back}</Link>
       </nav>
       <h1 className="conjugation-title">
-        <Flag lang={lang} />
+        <LangBadge lang={lang} />
         <span lang={lang}>{verb.text}</span>
       </h1>
       {lang === 'en' ? (

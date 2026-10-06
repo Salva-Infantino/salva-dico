@@ -1,6 +1,6 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { entryRow, signIn } from './helpers.ts';
 
 // Automated WCAG 2.2 AA audit (axe-core) of every screen, in both color schemes.
 // Rendering rules do not depend on the engine: Chromium only keeps the suite fast.
@@ -35,9 +35,10 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await audit(page, 'dictionary');
 
       await page.getByRole('searchbox', { name: 'Rechercher' }).fill('aller');
-      await page.getByRole('link', { name: /andare/ }).click();
-      await expect(page.getByRole('heading', { level: 1, name: 'Verbe' })).toBeVisible();
-      await audit(page, 'entry detail (verb)');
+      await entryRow(page, 'andare').click();
+      // Entry page on phones (h1), preview next to the table on wide screens (h2).
+      await expect(page.getByRole('heading', { name: 'aller', exact: true })).toBeVisible();
+      await audit(page, 'entry (page or preview)');
 
       await page.getByRole('link', { name: 'Conjugaison de « andare »' }).click();
       await expect(page.getByRole('heading', { level: 1 })).toContainText('andare');
@@ -58,6 +59,26 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await page.goto('/entries/new');
       await expect(page.getByRole('button', { name: 'Traduire avec l’IA' })).toBeVisible();
       await audit(page, 'AI mode');
+    });
+
+    test.describe('phone layout', () => {
+      test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+      test('dictionary, entry page and quiz card', async ({ page }) => {
+        await signIn(page);
+        await audit(page, 'dictionary (phone)');
+
+        await page.getByRole('searchbox', { name: 'Rechercher' }).fill('aller');
+        await entryRow(page, 'andare').click();
+        await expect(page.getByRole('heading', { level: 1, name: 'aller' })).toBeVisible();
+        await audit(page, 'entry page (phone)');
+
+        await page.goto('/quiz');
+        await page.getByRole('checkbox', { name: 'Mot' }).uncheck();
+        await page.getByRole('button', { name: 'Commencer (2 cartes)' }).click();
+        await page.keyboard.press('Space');
+        await audit(page, 'quiz card (phone)');
+      });
     });
 
     test('quiz and settings', async ({ page }) => {

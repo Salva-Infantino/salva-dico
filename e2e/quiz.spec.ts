@@ -5,9 +5,11 @@ import { signIn } from './helpers.ts';
 
 /** Drags the card horizontally with the mouse (Pointer Events, as with a finger). */
 async function dragCard(page: Page, card: Locator, dx: number) {
+  await page.evaluate('window.scrollTo(0, 0)');
   const box = await card.boundingBox();
   if (!box) throw new Error('Card not visible');
-  const x = box.x + box.width / 2;
+  // Start near the edge opposite to the move, so the pointer stays inside the viewport.
+  const x = dx > 0 ? box.x + 30 : box.x + box.width - 30;
   const y = box.y + 40;
   await page.mouse.move(x, y);
   await page.mouse.down();

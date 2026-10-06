@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Flag } from '../../components/Flag.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { ENTRY_TYPES, LANGS } from '../../domain/languages.ts';
 import {
@@ -64,7 +64,7 @@ export function QuizSetupPage() {
                     update({ source: lang, targets: targetsForSource(lang, settings.targets) });
                   }}
                 />
-                <Flag lang={lang} decorative />
+                <LangBadge lang={lang} decorative />
                 {fr.langs[lang]}
               </label>
             ))}
@@ -85,7 +85,7 @@ export function QuizSetupPage() {
                     update({ targets: LANGS.filter((l) => next.includes(l)) });
                   }}
                 />
-                <Flag lang={lang} decorative />
+                <LangBadge lang={lang} decorative />
                 {fr.langs[lang]}
               </label>
             ))}

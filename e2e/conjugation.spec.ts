@@ -1,13 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { entryRow, signIn } from './helpers.ts';
 
 test('opens the conjugation of one language from a verb entry', async ({ page }) => {
   await signIn(page);
   await page.getByRole('searchbox', { name: 'Rechercher' }).fill('aller');
-  await page
-    .getByRole('list')
-    .getByRole('link', { name: /andare/ })
-    .click();
+  await entryRow(page, 'andare').click();
 
   await page.getByRole('link', { name: 'Conjugaison de « andare »' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('andare');
@@ -26,10 +23,7 @@ test('edits one cell of a conjugation', async ({ page }, testInfo) => {
 
   await signIn(page);
   await page.getByRole('searchbox', { name: 'Rechercher' }).fill('se lever');
-  await page
-    .getByRole('list')
-    .getByRole('link', { name: /alzarsi/ })
-    .click();
+  await entryRow(page, 'alzarsi').click();
   await page.getByRole('link', { name: 'Modifier' }).click();
 
   // The summary must start with "Presente" ("Condizionale presente" also contains it).

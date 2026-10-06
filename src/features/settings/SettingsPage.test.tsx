@@ -20,12 +20,6 @@ const jsonFile = (value: unknown, name = 'backup.json') =>
   });
 
 describe('SettingsPage', () => {
-  it('opens from the dictionary', async () => {
-    renderWithEntries(entries);
-    await userEvent.click(screen.getByRole('link', { name: fr.settings.open }));
-    expect(screen.getByRole('heading', { level: 1, name: fr.settings.title })).toBeInTheDocument();
-  });
-
   describe('export', () => {
     let blobs: Blob[];
     beforeEach(() => {

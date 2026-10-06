@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
-import { Flag } from '../../components/Flag.tsx';
+import { Icon } from '../../components/Icon.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
 import { useNotify } from '../../components/notifications/NotificationsContext.ts';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { useEntryActions } from '../../data/EntryActionsContext.ts';
-import { LANGS } from '../../domain/languages.ts';
+import { isLang, LANGS } from '../../domain/languages.ts';
 import { fr } from '../../i18n/fr.ts';
 import { LoadingScreen } from '../../pages/LoadingScreen.tsx';
 import type { SavedState } from '../editor/EntryEditorPage.tsx';
+import { EntryHero } from './EntryHero.tsx';
 import { TranslationList } from './TranslationList.tsx';
 
 export function EntryDetailPage() {
@@ -19,6 +21,10 @@ export function EntryDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // The language shown first in the dictionary is the main one here too.
+  const [params] = useSearchParams();
+  const langParam = params.get('lang');
+  const heroLang = isLang(langParam) ? langParam : 'fr';
   const entry =
     state.status === 'ready'
       ? state.entries.find((candidate) => candidate.id === id && !candidate.deleted)
@@ -43,50 +49,43 @@ export function EntryDetailPage() {
 
   return (
     <main className="page entry-detail">
-      <nav>
-        <button type="button" className="link-button" onClick={goBack}>
-          ← {fr.entry.back}
+      <nav className="page-top">
+        <button type="button" className="round-button" aria-label={fr.entry.back} onClick={goBack}>
+          <Icon name="back" />
         </button>
       </nav>
-      <h1 className="entry-title">{fr.entryTypes[entry.type]}</h1>
 
-      <div className="entry-actions">
+      <EntryHero entry={entry} lang={heroLang} heading="h1" />
+
+      <h2 className="section-title">{fr.entry.translations}</h2>
+      <div className="lang-grid">
+        {LANGS.filter((lang) => lang !== heroLang).map((lang) => (
+          <section key={lang} className="lang-card" aria-labelledby={`lang-${lang}`}>
+            <h3 id={`lang-${lang}`} className="lang-card-title">
+              <LangBadge lang={lang} decorative />
+              {fr.langs[lang]}
+            </h3>
+            <TranslationList entry={entry} lang={lang} />
+          </section>
+        ))}
+      </div>
+
+      <div className="bottom-actions">
         <button
           type="button"
-          role="switch"
-          aria-checked={entry.mastered}
-          className="switch"
-          onClick={() => {
-            actions.setMastered(entry.id, !entry.mastered);
-          }}
-        >
-          <span className="switch-track" aria-hidden="true" />
-          {fr.entry.mastered}
-        </button>
-        <Link className="button secondary" to={`/entries/${entry.id}/edit`}>
-          {fr.entry.edit}
-        </Link>
-        <button
-          type="button"
-          className="secondary danger-outline"
+          className="round-button danger-soft"
+          aria-label={fr.entry.delete}
+          title={fr.entry.delete}
           onClick={() => {
             setConfirmDelete(true);
           }}
         >
-          {fr.entry.delete}
+          <Icon name="trash" />
         </button>
-      </div>
-
-      <div className="lang-grid">
-        {LANGS.map((lang) => (
-          <section key={lang} className="lang-card" aria-labelledby={`lang-${lang}`}>
-            <h2 id={`lang-${lang}`} className="lang-card-title">
-              <Flag lang={lang} decorative />
-              {fr.langs[lang]}
-            </h2>
-            <TranslationList entry={entry} lang={lang} />
-          </section>
-        ))}
+        <Link className="button primary" to={`/entries/${entry.id}/edit`}>
+          <Icon name="edit" />
+          {fr.entry.edit}
+        </Link>
       </div>
 
       <ConfirmDialog

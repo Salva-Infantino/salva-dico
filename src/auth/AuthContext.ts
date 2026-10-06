@@ -3,6 +3,8 @@ import { createContext, useContext } from 'react';
 export interface SignedInUser {
   uid: string;
   email: string | null;
+  /** Google display name ("Salva Infantino"), when the account has one. */
+  name?: string | null;
 }
 
 export type SignInError = 'offline' | 'failed';

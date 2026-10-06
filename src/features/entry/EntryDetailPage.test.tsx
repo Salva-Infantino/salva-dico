@@ -27,19 +27,26 @@ function card(lang: string) {
 }
 
 describe('EntryDetailPage', () => {
-  it('shows the 4 languages on one screen, each with its flag', () => {
+  it('shows the 4 languages on one screen, French first, each with its badge', () => {
     const { container } = renderWithEntries(entries, '/entries/arbre');
     for (const lang of ['Français', 'Anglais', 'Espagnol', 'Italien']) {
       expect(card(lang)).toBeInTheDocument();
     }
-    expect(container.querySelectorAll('.lang-card svg.flag')).toHaveLength(4);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(fr.entryTypes.word);
+    expect(container.querySelectorAll('.lang-badge')).toHaveLength(4);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^arbre$/);
+    expect(card('Français')).toHaveTextContent(fr.entry.kind('Français', fr.entryTypes.word));
   });
 
   it('shows the word of each language', () => {
     renderWithEntries(entries, '/entries/arbre');
     expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent(/^albero$/);
-    expect(within(card('Français')).getByText('arbre')).toHaveClass('headword');
+    expect(within(card('Anglais')).getByText('tree')).toHaveClass('headword');
+  });
+
+  it('puts the language shown in the dictionary first', () => {
+    renderWithEntries(entries, '/entries/arbre?lang=it');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^albero$/);
+    expect(within(card('Français')).getByRole('listitem')).toHaveTextContent(/^arbre$/);
   });
 
   it('shows infinitives, and English past forms', () => {
@@ -49,7 +56,7 @@ describe('EntryDetailPage', () => {
   });
 
   it('lists every translation of a language with equal weight', () => {
-    renderWithEntries(entries, '/entries/svp');
+    renderWithEntries(entries, '/entries/svp?lang=en');
     const items = within(card('Français')).getAllByRole('listitem');
     expect(items.map((item) => item.textContent)).toEqual(["s'il vous plaît", "s'il te plaît"]);
   });
@@ -63,9 +70,9 @@ describe('EntryDetailPage', () => {
   it('goes back to the search it came from', async () => {
     renderWithEntries(entries, '/?q=arbre');
     await userEvent.click(screen.getByRole('link', { name: /albero/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/entries/arbre');
+    expect(screen.getByTestId('location')).toHaveTextContent('/entries/arbre?lang=fr');
 
-    await userEvent.click(screen.getByRole('button', { name: `← ${fr.entry.back}` }));
+    await userEvent.click(screen.getByRole('button', { name: fr.entry.back }));
     expect(screen.getByTestId('location')).toHaveTextContent('/?q=arbre');
   });
 });

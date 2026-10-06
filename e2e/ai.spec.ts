@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { newEntryLink, signIn } from './helpers.ts';
 
 // The AI function is intercepted: no real Gemini call from the E2E tests.
 
@@ -53,7 +53,7 @@ test('shows AI errors in French and keeps the typed word', async ({ page }) => {
     route.fulfill({ status: 429, json: { error: 'quota' } }),
   );
   await signIn(page);
-  await page.getByRole('link', { name: 'Ajouter une entrée' }).click();
+  await newEntryLink(page).click();
   await page.getByRole('textbox', { name: 'Mot ou expression' }).fill('ratatouille');
   await page.getByRole('button', { name: 'Traduire avec l’IA' }).click();
 
@@ -63,7 +63,7 @@ test('shows AI errors in French and keeps the typed word', async ({ page }) => {
 
 test('disables the AI offline', async ({ page, context }) => {
   await signIn(page);
-  await page.getByRole('link', { name: 'Ajouter une entrée' }).click();
+  await newEntryLink(page).click();
   await page.getByRole('textbox', { name: 'Mot ou expression' }).fill('ratatouille');
   await context.setOffline(true);
 

@@ -2,45 +2,48 @@ import { describe, expect, it } from 'vitest';
 import { filtersToParams, parseFilters, toggle } from './searchParams.ts';
 
 describe('parseFilters', () => {
-  it('reads the query, languages and types', () => {
-    expect(parseFilters(new URLSearchParams('q=ragazzo&langs=it,es&types=word'))).toEqual({
+  it('reads the query, display language, type and selected entry', () => {
+    expect(parseFilters(new URLSearchParams('q=ragazzo&lang=it&type=word&entry=e1'))).toEqual({
       query: 'ragazzo',
-      langs: ['it', 'es'],
-      types: ['word'],
+      lang: 'it',
+      type: 'word',
+      selected: 'e1',
     });
   });
 
-  it('defaults to an empty search', () => {
-    expect(parseFilters(new URLSearchParams())).toEqual({ query: '', langs: [], types: [] });
+  it('defaults to an empty search displayed in French', () => {
+    expect(parseFilters(new URLSearchParams())).toEqual({
+      query: '',
+      lang: 'fr',
+      type: null,
+      selected: null,
+    });
   });
 
-  it('ignores unknown and duplicated values', () => {
-    expect(parseFilters(new URLSearchParams('langs=it,de,it,&types=adverb,verb'))).toEqual({
+  it('ignores unknown values', () => {
+    expect(parseFilters(new URLSearchParams('lang=de&type=adverb'))).toEqual({
       query: '',
-      langs: ['it'],
-      types: ['verb'],
+      lang: 'fr',
+      type: null,
+      selected: null,
     });
   });
 });
 
 describe('filtersToParams', () => {
-  it('omits empty filters', () => {
-    expect(filtersToParams({ query: '', langs: [], types: [] }).toString()).toBe('');
-  });
-
-  it('writes values in canonical order', () => {
-    const params = filtersToParams({
-      query: 'l’arbre',
-      langs: ['it', 'fr'],
-      types: ['verb', 'word'],
-    });
-    expect(params.get('q')).toBe('l’arbre');
-    expect(params.get('langs')).toBe('fr,it');
-    expect(params.get('types')).toBe('word,verb');
+  it('omits default values', () => {
+    expect(filtersToParams({ query: '', lang: 'fr', type: null, selected: null }).toString()).toBe(
+      '',
+    );
   });
 
   it('round-trips through parseFilters', () => {
-    const filters = { query: 'se lever', langs: ['fr' as const], types: ['verb' as const] };
+    const filters = {
+      query: 'se lever',
+      lang: 'es' as const,
+      type: 'verb' as const,
+      selected: 'x',
+    };
     expect(parseFilters(filtersToParams(filters))).toEqual(filters);
   });
 });

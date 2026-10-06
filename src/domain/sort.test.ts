@@ -6,7 +6,7 @@ import {
   makeEntry,
   sVousPlaitContent,
 } from '../test/fixtures.ts';
-import { sortAlphabetically } from './sort.ts';
+import { sectionLetter, sortAlphabetically } from './sort.ts';
 
 const expression = (fr: string) =>
   makeEntry(
@@ -50,5 +50,17 @@ describe('sortAlphabetically', () => {
       'en',
     );
     expect(sorted.map((e) => e.id)).toEqual(['garcon', 'arbre']);
+  });
+});
+
+describe('sectionLetter', () => {
+  it('uses the first letter of the first headword, without accent or punctuation', () => {
+    expect(sectionLetter(expression('école'), 'fr')).toBe('E');
+    expect(sectionLetter(expression('¿qué tal?'), 'fr')).toBe('Q');
+    expect(sectionLetter(makeEntry(garconContent), 'it')).toBe('R');
+  });
+
+  it('groups anything else under #', () => {
+    expect(sectionLetter(expression('42'), 'fr')).toBe('#');
   });
 });

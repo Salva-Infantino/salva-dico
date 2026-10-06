@@ -1,6 +1,10 @@
 export const LANGS = ['fr', 'en', 'es', 'it'] as const;
 export type Lang = (typeof LANGS)[number];
 
+export function isLang(value: unknown): value is Lang {
+  return (LANGS as readonly unknown[]).includes(value);
+}
+
 /** Languages with full verb conjugations (6 persons, imperative). */
 export const ROMANCE_LANGS = ['fr', 'es', 'it'] as const satisfies readonly Lang[];
 export type RomanceLang = (typeof ROMANCE_LANGS)[number];

@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router';
+import { AppShell } from './components/AppShell.tsx';
 import { AccessDeniedPage } from './auth/AccessDeniedPage.tsx';
 import { useAuth, type SignedInUser } from './auth/AuthContext.ts';
 import { SignInPage } from './auth/SignInPage.tsx';
@@ -48,7 +49,9 @@ function SignedInApp({ user }: { user: SignedInUser }) {
 
   return (
     <>
-      <Outlet />
+      <AppShell user={user}>
+        <Outlet />
+      </AppShell>
       <RouteFocus />
     </>
   );

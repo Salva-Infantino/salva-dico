@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { useBlocker } from 'react-router';
 import { ConfirmDialog } from '../../components/ConfirmDialog.tsx';
-import { Flag } from '../../components/Flag.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
 import { LANGS, type Lang } from '../../domain/languages.ts';
 import type { Entry, EntryContent } from '../../domain/schemas.ts';
@@ -164,7 +164,7 @@ export function EntryForm({
         return (
           <fieldset key={lang} className="lang-fieldset">
             <legend className="lang-card-title">
-              <Flag lang={lang} decorative />
+              <LangBadge lang={lang} decorative />
               {fr.langs[lang]}
             </legend>
             {langError && <p className="field-error">{fr.editor.errors[langError]}</p>}

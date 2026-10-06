@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { newEntryLink, signIn } from './helpers.ts';
 
 // Words are unique per run and browser: specs run in parallel on shared emulator data.
 // The "zz" prefix sorts them after the seeded entries.
@@ -55,7 +55,7 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
 
 test('warns about a duplicate while typing', async ({ page }) => {
   await signIn(page);
-  await page.getByRole('link', { name: 'Ajouter une entrée' }).click();
+  await newEntryLink(page).click();
   await page.getByRole('button', { name: 'Manuel' }).click();
   await page
     .getByRole('group', { name: 'Français' })

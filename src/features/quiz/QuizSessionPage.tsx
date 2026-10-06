@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type MouseEvent } from 'react';
 import { Link, Navigate, useLocation } from 'react-router';
-import { Flag } from '../../components/Flag.tsx';
+import { Icon } from '../../components/Icon.tsx';
+import { LangBadge } from '../../components/LangBadge.tsx';
+import { SpeakButton } from '../../components/SpeakButton.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { headwords } from '../../domain/forms.ts';
 import {
@@ -11,6 +13,7 @@ import {
   type QuizSettings,
 } from '../../domain/quiz.ts';
 import { prefersReducedMotion } from '../../hooks/motion.ts';
+import { useSpeech } from '../../hooks/useSpeech.ts';
 import { fr } from '../../i18n/fr.ts';
 import { QuizScore } from './QuizScore.tsx';
 import { SwipeCard, type SwipeDirection } from './SwipeCard.tsx';
@@ -43,6 +46,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
     ),
   );
   const [exit, setExit] = useState<SwipeDirection | null>(null);
+  const speech = useSpeech();
   const exitTimer = useRef<number | undefined>(undefined);
 
   const answer = useCallback(
@@ -131,63 +135,89 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
     <main className="page quiz-session">
       <h1 className="visually-hidden">{fr.quiz.setupTitle}</h1>
       <header className="quiz-header">
-        <Link to="/">{fr.quiz.quit}</Link>
-        <p className="quiz-progress" aria-live="polite">
-          {progress}
-        </p>
+        <Link to="/" className="round-button" aria-label={fr.quiz.quit} title={fr.quiz.quit}>
+          <Icon name="close" />
+        </Link>
         <progress
           className={quiz.pass === 'review' ? 'review' : undefined}
           value={quiz.position}
           max={quiz.passSize}
           aria-hidden="true"
         />
+        <p className="quiz-progress">
+          <span aria-hidden="true">
+            {position} / {quiz.passSize}
+          </span>
+          <span className="visually-hidden" aria-live="polite">
+            {progress}
+          </span>
+        </p>
       </header>
 
-      <SwipeCard key={`${quiz.pass}-${card.id}`} exit={exit} onSwipe={answer}>
-        <section className="quiz-source" aria-label={fr.langs[settings.source]}>
-          <Flag lang={settings.source} />
-          <ul className="quiz-words">
-            {headwords(card, settings.source).map((word, i) => (
-              <li key={i} lang={settings.source}>
-                {word}
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div className="card-stack">
+        <SwipeCard key={`${quiz.pass}-${card.id}`} exit={exit} onSwipe={answer}>
+          <section className="quiz-source" aria-label={fr.langs[settings.source]}>
+            <div className="quiz-card-top">
+              <LangBadge lang={settings.source} />
+              <span className="quiz-type">{fr.entryTypes[card.type]}</span>
+            </div>
+            <ul className="quiz-words">
+              {headwords(card, settings.source).map((word, i) => (
+                <li key={i} lang={settings.source}>
+                  {word}
+                </li>
+              ))}
+            </ul>
+            <SpeakButton
+              text={headwords(card, settings.source).join(', ')}
+              lang={settings.source}
+              speech={speech}
+              large
+            />
+          </section>
 
-        <div className="quiz-targets">
-          {settings.targets.map((lang, index) => {
-            const flipped = quiz.flipped[index] === true;
-            return (
-              <button
-                key={lang}
-                type="button"
-                className="quiz-target"
-                aria-pressed={flipped}
-                onMouseDown={keepFocus}
-                onClick={() => {
-                  dispatch({ type: 'flip', index });
-                }}
-              >
-                <Flag lang={lang} />
-                {flipped ? (
-                  <span className="quiz-target-words" lang={lang}>
-                    {headwords(card, lang).join(', ')}
-                  </span>
-                ) : (
-                  <span className="quiz-target-hidden">
-                    <span aria-hidden="true">?</span>
-                    <span className="visually-hidden">{fr.quiz.hidden}</span>
-                  </span>
-                )}
-                <kbd className="quiz-key" aria-hidden="true">
-                  {index + 1}
-                </kbd>
-              </button>
-            );
-          })}
-        </div>
-      </SwipeCard>
+          <div className="quiz-targets">
+            {settings.targets.map((lang, index) => {
+              const flipped = quiz.flipped[index] === true;
+              return (
+                <button
+                  key={lang}
+                  type="button"
+                  className="quiz-target"
+                  aria-pressed={flipped}
+                  onMouseDown={keepFocus}
+                  onClick={() => {
+                    dispatch({ type: 'flip', index });
+                  }}
+                >
+                  <LangBadge lang={lang} />
+                  {flipped ? (
+                    <span className="quiz-target-words" lang={lang}>
+                      {headwords(card, lang).join(', ')}
+                    </span>
+                  ) : (
+                    <span className="quiz-target-hidden">{fr.quiz.hidden}</span>
+                  )}
+                  <kbd className="quiz-key" aria-hidden="true">
+                    {index + 1}
+                  </kbd>
+                </button>
+              );
+            })}
+          </div>
+        </SwipeCard>
+      </div>
+
+      <button
+        type="button"
+        className="text-button flip-all"
+        onMouseDown={keepFocus}
+        onClick={() => {
+          dispatch({ type: 'flipAll' });
+        }}
+      >
+        {fr.quiz.flipAll}
+      </button>
 
       <div className="quiz-actions">
         <button
@@ -198,17 +228,8 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
             answer('left');
           }}
         >
-          ← {fr.quiz.review}
-        </button>
-        <button
-          type="button"
-          className="secondary"
-          onMouseDown={keepFocus}
-          onClick={() => {
-            dispatch({ type: 'flipAll' });
-          }}
-        >
-          {fr.quiz.flipAll}
+          <Icon name="arrowLeft" />
+          {fr.quiz.review}
         </button>
         <button
           type="button"
@@ -218,7 +239,8 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
             answer('right');
           }}
         >
-          {fr.quiz.known} →
+          {fr.quiz.known}
+          <Icon name="arrowRight" />
         </button>
       </div>
       <p className="quiz-keyboard-hint muted">{fr.quiz.keyboardHint}</p>

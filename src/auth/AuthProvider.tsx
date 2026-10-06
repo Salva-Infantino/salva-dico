@@ -54,7 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return onAuthStateChanged(auth, (user) => {
       setState(
         user
-          ? { status: 'signedIn', user: { uid: user.uid, email: user.email } }
+          ? {
+              status: 'signedIn',
+              user: { uid: user.uid, email: user.email, name: user.displayName },
+            }
           : (previous) => ({
               status: 'signedOut',
               error: previous.status === 'signedOut' ? previous.error : null,

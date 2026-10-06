@@ -27,12 +27,6 @@ beforeEach(() => {
 const startButton = () => screen.getByRole('button', { name: /^Commencer/ });
 
 describe('QuizSetupPage', () => {
-  it('opens from the dictionary', async () => {
-    renderWithEntries(entries);
-    await userEvent.click(screen.getByRole('link', { name: fr.quiz.open }));
-    expect(screen.getByRole('heading', { name: fr.quiz.setupTitle })).toBeInTheDocument();
-  });
-
   it('counts the available entries live', async () => {
     renderWithEntries(entries, '/quiz');
     // Mastered entries are excluded by default.

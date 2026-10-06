@@ -1,56 +1,87 @@
-import { Flag } from '../../components/Flag.tsx';
+import { useId } from 'react';
 import { ENTRY_TYPES, LANGS, type EntryType, type Lang } from '../../domain/languages.ts';
 import { fr } from '../../i18n/fr.ts';
 
-export function LangChips({
-  selected,
-  onToggle,
+/**
+ * Native radio buttons styled as chips or segments: arrow keys and screen readers
+ * work out of the box.
+ */
+function RadioGroup<T extends string>({
+  legend,
+  className,
+  options,
+  value,
+  onChange,
 }: {
-  selected: readonly Lang[];
-  onToggle: (lang: Lang) => void;
+  legend: string;
+  className: string;
+  options: readonly { value: T; label: string; extraClass?: string; srLabel?: string }[];
+  value: T;
+  onChange: (value: T) => void;
 }) {
+  const name = useId();
   return (
-    <div className="chips" role="group" aria-label={fr.home.langFilter}>
-      {LANGS.map((lang) => (
-        <button
-          key={lang}
-          type="button"
-          className="chip"
-          aria-pressed={selected.includes(lang)}
-          onClick={() => {
-            onToggle(lang);
-          }}
-        >
-          <Flag lang={lang} />
-          <span className="chip-label">{lang.toUpperCase()}</span>
-        </button>
+    <fieldset className={className}>
+      <legend className="visually-hidden">{legend}</legend>
+      {options.map((option) => (
+        <label key={option.value} className={option.extraClass}>
+          <input
+            type="radio"
+            name={name}
+            value={option.value}
+            checked={option.value === value}
+            onChange={() => {
+              onChange(option.value);
+            }}
+          />
+          <span aria-hidden={option.srLabel ? true : undefined}>{option.label}</span>
+          {option.srLabel && <span className="visually-hidden">{option.srLabel}</span>}
+        </label>
       ))}
-    </div>
+    </fieldset>
   );
 }
 
-export function TypeChips({
-  selected,
-  onToggle,
+/** Language shown first in each row (and used for the alphabetical order). */
+export function LangChoice({ value, onChange }: { value: Lang; onChange: (lang: Lang) => void }) {
+  return (
+    <RadioGroup
+      legend={fr.home.displayLang}
+      className="lang-chips"
+      options={LANGS.map((lang) => ({
+        value: lang,
+        label: lang.toUpperCase(),
+        srLabel: fr.langs[lang],
+        extraClass: `lang-${lang}`,
+      }))}
+      value={value}
+      onChange={onChange}
+    />
+  );
+}
+
+const ALL = 'all';
+
+/** All entries, only words or only verbs. */
+export function TypeChoice({
+  value,
+  onChange,
 }: {
-  selected: readonly EntryType[];
-  onToggle: (type: EntryType) => void;
+  value: EntryType | null;
+  onChange: (type: EntryType | null) => void;
 }) {
   return (
-    <div className="chips" role="group" aria-label={fr.home.typeFilter}>
-      {ENTRY_TYPES.map((type) => (
-        <button
-          key={type}
-          type="button"
-          className="chip"
-          aria-pressed={selected.includes(type)}
-          onClick={() => {
-            onToggle(type);
-          }}
-        >
-          {fr.entryTypes[type]}
-        </button>
-      ))}
-    </div>
+    <RadioGroup<EntryType | typeof ALL>
+      legend={fr.home.typeFilter}
+      className="segmented"
+      options={[
+        { value: ALL, label: fr.home.allTypes },
+        ...ENTRY_TYPES.map((type) => ({ value: type, label: fr.home.typeFilters[type] })),
+      ]}
+      value={value ?? ALL}
+      onChange={(next) => {
+        onChange(next === ALL ? null : next);
+      }}
+    />
   );
 }

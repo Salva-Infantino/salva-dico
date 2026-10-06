@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'reac
 import { useNotify } from '../../components/notifications/NotificationsContext.ts';
 import { useEntries } from '../../data/EntriesContext.ts';
 import { useEntryActions } from '../../data/EntryActionsContext.ts';
-import { LANGS, type Lang } from '../../domain/languages.ts';
+import { isLang } from '../../domain/languages.ts';
 import type { Entry, EntryContent } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
 import { AiPanel, type AiRequestDraft } from './AiPanel.tsx';
@@ -14,9 +14,6 @@ import { EntryForm } from './EntryForm.tsx';
 export interface SavedState {
   savedId: string;
 }
-
-const isLang = (value: string | null): value is Lang =>
-  value !== null && (LANGS as readonly string[]).includes(value);
 
 /** /entries/new?lang=it&text=ragazzo&mode=manual — or /entries/:id/edit. */
 export function EntryEditorPage() {
