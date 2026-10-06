@@ -252,10 +252,10 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   header deferred to step 2 (needs the Firebase origins).
 - Step 1 (Domain): **done** (2026-10-04). Zod 4 schemas, normalization, search index, duplicate detection,
   realistic fixtures in `src/test/fixtures.ts` (reusable as dev seed data in step 3).
-- Step 2 (Firebase): **done** (2026-10-04), except the production check of redirect sign-in through the
-  Netlify `/__/auth` proxy, which needs the Netlify site (set `VITE_FIREBASE_AUTH_DOMAIN` to the site domain
-  there and add it to Firebase Auth authorized domains). Firestore project `salva-dico` (eur3), rules deployed
-  with `pnpm exec firebase deploy --only firestore`. CSP is a build-time `<meta>` tag (`csp.ts`).
+- Step 2 (Firebase): **done** (2026-10-04). Redirect sign-in through the Netlify `/__/auth` proxy checked
+  in production (2026-10-06): needs `VITE_FIREBASE_AUTH_DOMAIN` = site domain, the domain in Firebase Auth
+  authorized domains, and `https://<site>/__/auth/handler` in the OAuth client's redirect URIs.
+  Firestore project `salva-dico` (eur3), rules deployed with `pnpm exec firebase deploy --only firestore`. CSP is a build-time `<meta>` tag (`csp.ts`).
   Local Java 21 for the emulator: Temurin in `~/.local/share/java/` (Homebrew has no Intel bottles).
 - Step 3 (Dictionary read): **done** (2026-10-04). Alphabetical list (French collation), URL-backed
   filters, progressive rendering (100 rows + IntersectionObserver, `content-visibility`), entry detail.
@@ -289,9 +289,8 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   every screen in both themes; focus moves to the page heading after navigation and the tab title names
   the page; `lang` on words. README rewritten for the portfolio, screenshots from `pnpm docs:screenshots`,
   MIT license.
-- Roadmap complete. Remaining before daily use in production: deploy on Netlify (environment variables
-  of `.env.example`, `GEMINI_MODEL` fallback list, auth domain) and check redirect sign-in through the
-  `/__/auth` proxy (see step 2).
+- Roadmap complete. Deployed on Netlify (`salva-dico.netlify.app`), sign-in checked in production
+  (2026-10-06). CSP errors from `about:srcdoc` in the console come from Netlify's injected badge, not the app.
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,

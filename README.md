@@ -210,7 +210,16 @@ then run `pnpm dev`.
      own domain (sign-in goes through the `/__/auth` proxy of `netlify.toml`);
    - `OWNER_UID`, `GEMINI_API_KEY`, and optionally `GEMINI_MODEL` (comma-separated fallback list).
 3. In the Firebase console, add the site's domain to the Auth authorized domains.
-4. Deploy the rules: `pnpm exec firebase deploy --only firestore`.
+4. In the Google Cloud console (APIs & Services > Credentials), edit the OAuth web client
+   auto-created by Firebase: add `https://<site>` to the authorized JavaScript origins and
+   `https://<site>/__/auth/handler` to the authorized redirect URIs. Without it, Google sign-in
+   fails with `Error 400: redirect_uri_mismatch`.
+5. Deploy the rules: `pnpm exec firebase deploy --only firestore`.
+
+Expected console noise in production: Netlify injects its own badge script, which builds an
+`about:srcdoc` iframe. That iframe inherits the app's Content-Security-Policy, so its inline script
+and style are blocked. It does not affect the app; turn the badge off in the Netlify project
+settings rather than loosening the CSP.
 
 ## Decisions and trade-offs
 
