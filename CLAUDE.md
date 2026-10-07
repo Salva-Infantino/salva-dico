@@ -69,7 +69,10 @@ Font: Figtree, bundled as woff2 (SIL OFL) for offline use.
 - The Gemini models are configurable: `GEMINI_MODEL` is a comma-separated list, tried in order (fallback
   on quota exhaustion, overload, or no answer within the 25 s per-attempt limit). Check current Gemini
   docs for the available free-tier models and structured-output API before implementing; do not rely
-  on memory.
+  on memory. Free-tier limits are only shown per account in AI Studio (2026-10-07: Flash 5 RPM / 20 RPD,
+  Flash-Lite 15 RPM / 500 RPD), so the default list starts with `gemini-3.5-flash-lite`. The AI must
+  stay free (owner's constraint): Mistral's API is paid only, Groq's free tier was too slow and made
+  conjugation mistakes, GitHub Models is retired.
 
 ## 5. Data model
 
@@ -280,7 +283,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   documents of the old types are rejected by the rules and skipped by the sync.
 - Step 6 (AI): **done** (2026-10-05), checked by the owner against the real Gemini API (local dev server).
   Verbs are generated in several requests (entry, then one per conjugation) to avoid Gemini's recitation
-  filter, with retries and model fallback (`GEMINI_MODEL` list; set it on Netlify too).
+  filter, with retries and model fallback (`GEMINI_MODEL` list, optional: the default in
+  `server/translate/env.ts` is used when it is not set). Each attempt has a 25 s limit within the
+  50 s budget, so a stuck model hands over to the next one.
 - Step 7 (Quiz): **done** (2026-10-05). `/quiz` (settings, remembered in localStorage) and `/quiz/session`
   (in memory only: a reload goes back to the settings). Pure session reducer in `src/domain/quiz.ts`.
   Swipe with Pointer Events (no dependency), buttons and keyboard; answers are ignored during the 200 ms

@@ -2,11 +2,12 @@ import { z } from 'zod';
 
 /**
  * Tried in order: the next one takes over when one is overloaded, too slow or out of quota.
- * Several fallbacks, because an overloaded model often stays so for a while (and each
- * model has its own free-tier quota).
+ * Flash-Lite first: its free tier allows 15 requests per minute and 500 per day, against 5
+ * and 20 for Flash models, and a verb takes 4 or 5 requests at once. Its conjugations were
+ * checked against Flash (2026-10-07). The Flash models are fallbacks, each with its own quota.
  */
 export const DEFAULT_GEMINI_MODELS =
-  'gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash';
+  'gemini-3.5-flash-lite,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash';
 
 /** Server-only configuration (Netlify environment variables, never VITE_). */
 const serverEnvSchema = z.object({
