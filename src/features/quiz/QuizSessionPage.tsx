@@ -160,7 +160,14 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
           <section className="quiz-source" aria-label={fr.langs[settings.source]}>
             <div className="quiz-card-top">
               <LangBadge lang={settings.source} />
-              <span className="quiz-type">{fr.entryTypes[card.type]}</span>
+              <div className="quiz-card-tools">
+                <span className="quiz-type">{fr.entryTypes[card.type]}</span>
+                <SpeakButton
+                  text={headwords(card, settings.source).join(', ')}
+                  lang={settings.source}
+                  speech={speech}
+                />
+              </div>
             </div>
             <ul className="quiz-words">
               {headwords(card, settings.source).map((word, i) => (
@@ -169,12 +176,6 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
                 </li>
               ))}
             </ul>
-            <SpeakButton
-              text={headwords(card, settings.source).join(', ')}
-              lang={settings.source}
-              speech={speech}
-              large
-            />
           </section>
 
           <div className="quiz-targets">

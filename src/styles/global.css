@@ -2132,6 +2132,12 @@ label.file-button:has(+ input[type='file']:focus-visible) {
   font-size: 0.9375rem;
 }
 
+.quiz-card-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .quiz-type {
   font-size: 0.9375rem;
   font-weight: 800;
@@ -2141,18 +2147,14 @@ label.file-button:has(+ input[type='file']:focus-visible) {
 }
 
 .quiz-words {
-  margin: var(--space-6) 0 0;
+  margin: 0 0 var(--space-2);
   padding: 0;
   list-style: none;
-  font-size: clamp(2.5rem, 12vw, 3.25rem);
+  font-size: clamp(2.25rem, 11vw, 3.25rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 1.1;
   overflow-wrap: anywhere;
-}
-
-.quiz-source .speak-button.large {
-  margin-bottom: var(--space-4);
 }
 
 .quiz-targets {
@@ -2269,8 +2271,8 @@ button.quiz-answer.known {
   }
 }
 
-/* Short screens (a phone browser with its toolbars): keep the answers in view. */
-@media (max-height: 760px) {
+/* Most phones (browser toolbars included): the card and the answers fit without scrolling. */
+@media (max-height: 820px) {
   .page.quiz-session {
     gap: var(--space-4);
   }
@@ -2285,14 +2287,8 @@ button.quiz-answer.known {
   }
 
   .quiz-words {
-    margin-top: 0;
-    font-size: 2.25rem;
-  }
-
-  .quiz-source .speak-button.large {
-    width: 3.5rem;
-    height: 3.5rem;
     margin-bottom: 0;
+    font-size: 2.25rem;
   }
 
   button.quiz-target {
