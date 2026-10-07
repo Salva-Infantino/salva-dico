@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1f4e79"/>
-  <path d="M136 128h168a72 72 0 0 1 72 72v184H208a72 72 0 0 1-72-72z" fill="#ffffff"/>
-  <path d="M184 200h136M184 256h136M184 312h96" stroke="#1f4e79" stroke-width="24" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18">
+  <!-- The brand mark (BrandMark in src/components/AppShell.tsx): one dot per language. -->
+  <circle cx="4" cy="4" r="4" fill="#7d93ec"/>
+  <circle cx="14" cy="4" r="4" fill="#e98b78"/>
+  <circle cx="4" cy="14" r="4" fill="#ecc75a"/>
+  <circle cx="14" cy="14" r="4" fill="#6dbb88"/>
 </svg>
