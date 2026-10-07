@@ -67,8 +67,9 @@ Font: Figtree, bundled as woff2 (SIL OFL) for offline use.
   before calling Gemini, so nobody else can consume the quota.
 - The Firebase web config is public by design; security relies on the rules. Document this in the README.
 - The Gemini models are configurable: `GEMINI_MODEL` is a comma-separated list, tried in order (fallback
-  on quota exhaustion or overload). Check current Gemini docs for the available free-tier models and
-  structured-output API before implementing; do not rely on memory.
+  on quota exhaustion, overload, or no answer within the 25 s per-attempt limit). Check current Gemini
+  docs for the available free-tier models and structured-output API before implementing; do not rely
+  on memory.
 
 ## 5. Data model
 

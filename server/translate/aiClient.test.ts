@@ -27,8 +27,17 @@ const answer = (text: string, finishReason = 'STOP') => ({
   candidates: [{ finishReason }],
 });
 
-function client(models = ['model-a', 'model-b']) {
-  return createGeminiClient({ apiKey: 'key', models, retryDelayMs: 0 });
+function client(models = ['model-a', 'model-b'], attemptTimeoutMs = 10_000) {
+  return createGeminiClient({ apiKey: 'key', models, retryDelayMs: 0, attemptTimeoutMs });
+}
+
+/** A Gemini call that never answers until its abort signal fires. */
+function hang({ config }: { config: { abortSignal: AbortSignal } }): Promise<never> {
+  return new Promise((_, reject) => {
+    config.abortSignal.addEventListener('abort', () => {
+      reject(new Error('aborted'));
+    });
+  });
 }
 
 async function failure(promise: Promise<unknown>): Promise<AiError> {
@@ -117,5 +126,29 @@ describe('createGeminiClient', () => {
     const error = await failure(client().generateJson(options(controller.signal)));
     expect(error.kind).toBe('timeout');
     expect(generateContent).toHaveBeenCalledOnce();
+  });
+
+  it('leaves a model that does not answer in time for the next one, without retrying it', async () => {
+    generateContent.mockImplementationOnce(hang).mockResolvedValueOnce(answer('{"ok":true}'));
+    await expect(client(['model-a', 'model-b'], 20).generateJson(options())).resolves.toEqual({
+      ok: true,
+    });
+    expect(calledModels()).toEqual(['model-a', 'model-b']);
+  });
+
+  it('reports a timeout when no model answers in time', async () => {
+    generateContent.mockImplementation(hang);
+    const error = await failure(client(['model-a', 'model-b'], 20).generateJson(options()));
+    expect(error.kind).toBe('timeout');
+    expect(calledModels()).toEqual(['model-a', 'model-b']);
+  });
+
+  it('stops at the overall deadline, even within the attempt limit', async () => {
+    generateContent.mockImplementation(hang);
+    const error = await failure(
+      client(['model-a', 'model-b'], 10_000).generateJson(options(AbortSignal.timeout(20))),
+    );
+    expect(error.kind).toBe('timeout');
+    expect(calledModels()).toEqual(['model-a']);
   });
 });

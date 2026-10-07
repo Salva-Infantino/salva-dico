@@ -141,7 +141,9 @@ from the Zod schemas (`z.toJSONSchema`), then validates the answer with Zod agai
   in parallel. Asking for three full conjugation tables at once trips Gemini's recitation filter
   (empty answer).
 - **Resilience**: retries on overload or blocked answers, then **fallback models**
-  (`GEMINI_MODEL` is a comma-separated list), and a time limit under Netlify's 60 s.
+  (`GEMINI_MODEL` is a comma-separated list). Each attempt has its own 25 s limit, so a model
+  that does not answer is left for the next one instead of using up the overall 50 s limit
+  (under Netlify's 60 s).
 - Errors are shown in French in the app, without losing what was typed. Nothing is saved before the
   review screen is validated.
 

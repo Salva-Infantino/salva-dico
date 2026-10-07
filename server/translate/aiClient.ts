@@ -39,6 +39,11 @@ export interface GeminiClientOptions {
   /** Attempts per model for transient failures (overload, recitation). */
   attemptsPerModel?: number;
   retryDelayMs?: number;
+  /**
+   * Limit for one attempt, within the caller's overall signal. A model that does not
+   * answer in time is left for the next one, so it cannot use up the whole budget.
+   */
+  attemptTimeoutMs?: number;
 }
 
 /** Transient failures worth another attempt on the same model. */
@@ -49,11 +54,13 @@ export function createGeminiClient({
   models,
   attemptsPerModel = 2,
   retryDelayMs = 800,
+  attemptTimeoutMs = 25_000,
 }: GeminiClientOptions): AiClient {
   const ai = new GoogleGenAI({ apiKey });
 
   async function attempt(model: string, options: GenerateJsonOptions): Promise<unknown> {
-    const { system, prompt, schema, signal } = options;
+    const { system, prompt, schema } = options;
+    const signal = AbortSignal.any([options.signal, AbortSignal.timeout(attemptTimeoutMs)]);
     let text: string | undefined;
     try {
       const response = await ai.models.generateContent({
@@ -92,8 +99,11 @@ export function createGeminiClient({
           } catch (error) {
             last = error instanceof AiError ? error : toAiError(error, options.signal);
             console.warn(`translate: ${model} ${last.kind} (attempt ${String(i + 1)})`);
-            // Out of quota: this model is done for the day, try the next one.
-            if (last.kind === 'quota') break;
+            // The overall time is up: no model can answer anymore.
+            if (options.signal.aborted) throw last;
+            // Out of quota (done for the day) or too slow (stuck or overloaded): try the
+            // next model.
+            if (last.kind === 'quota' || last.kind === 'timeout') break;
             if (!RETRYABLE.has(last.kind)) throw last;
             await pause(retryDelayMs, options.signal);
           }
