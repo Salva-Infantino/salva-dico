@@ -2198,13 +2198,13 @@ button.quiz-target[aria-pressed='true'] {
 }
 
 .quiz-target-words {
-  font-size: 1.375rem;
+  font-size: 1.2rem;
   font-weight: 800;
   overflow-wrap: anywhere;
 }
 
 .quiz-target-hidden {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   color: var(--color-text-muted);
 }
 
