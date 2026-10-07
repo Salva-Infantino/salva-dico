@@ -202,6 +202,7 @@ then run `pnpm dev`.
 | `pnpm test:emulator`    | Security rules and sync tests on the Firestore emulator (needs Java 21) |
 | `pnpm test:e2e`         | E2E, offline and accessibility tests (Playwright, on seeded emulators)  |
 | `pnpm docs:screenshots` | Regenerate the README screenshots from the demo data                    |
+| `pnpm icons`            | Regenerate the PWA and Apple touch icons from the brand mark            |
 | `pnpm emulators`        | Start the Firebase emulators with their UI on port 4000                 |
 
 ## Deployment (Netlify)
