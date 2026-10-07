@@ -23,6 +23,8 @@
   --color-surface: #ffffff;
   --color-surface-2: #f8f7fc;
   --color-segment: #e8e6f3;
+  /* Selected segment: raised above the segmented track. */
+  --color-segment-active: #ffffff;
   --color-text: #1c1a33;
   --color-text-muted: #5d5a75;
   --color-text-faint: #9a97b8;
@@ -92,11 +94,12 @@
     --color-surface: #1d1c2c;
     --color-surface-2: #242337;
     --color-segment: #262539;
+    --color-segment-active: #3a3955;
     --color-text: #eeedf7;
     --color-text-muted: #aeacc6;
     --color-text-faint: #77748f;
     --color-border: #313049;
-    --color-ledge: #0a0912;
+    --color-ledge: #060510;
     --color-accent: #5b4ee0;
     --color-accent-ledge: #3b30a8;
     --color-accent-contrast: #ffffff;
@@ -105,10 +108,10 @@
     --color-focus: #a99fff;
     --color-error: #ffb4a8;
     --color-error-soft: #3d1f1d;
-    --color-error-ledge: #2a1414;
+    --color-error-ledge: #6b2c24;
     --color-warning: #ffcfa8;
-    --color-warning-bg: #4a2d1a;
-    --color-warning-ledge: #2e1b0f;
+    --color-warning-bg: #633a1a;
+    --color-warning-ledge: #3a210f;
     --color-success: #4fa36c;
     --color-success-soft: #1f3a2a;
     --color-success-text: #9fdcb3;
@@ -129,6 +132,10 @@
     --it-text: #a4ddb6;
     --it-strong: #3f8f5b;
     --it-ledge: #13271b;
+
+    /* A dark ledge barely shows on a dark background: a faint top highlight keeps the
+       raised look. */
+    --ledge: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 4px 0 var(--color-ledge);
   }
 }
 
@@ -254,9 +261,12 @@ label.button.secondary:active {
   box-shadow: 0 2px 0 var(--color-ledge);
 }
 
+/* Neutral look rather than a faded accent, which reads as broken in the dark theme. */
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  color: var(--color-text-faint);
+  background: var(--color-segment);
+  box-shadow: none;
 }
 
 /* Text-only buttons. */
@@ -766,7 +776,7 @@ button.danger-outline {
 .segmented label:has(input:checked) {
   font-weight: 800;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-segment-active);
   box-shadow: 0 2px 0 var(--color-ledge);
 }
 
@@ -2417,7 +2427,7 @@ input[type='radio'] {
 .segmented button[aria-pressed='true'] {
   font-weight: 800;
   color: var(--color-text);
-  background: var(--color-surface);
+  background: var(--color-segment-active);
   box-shadow: 0 2px 0 var(--color-ledge);
 }
 
