@@ -1,6 +1,7 @@
 import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { formatResetTime, nextQuotaReset } from '../../domain/quotaReset.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
 import { allerContent, garconContent, makeEntry } from '../../test/fixtures.ts';
@@ -73,6 +74,28 @@ describe('AI mode', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(fr.ai.errors.quota);
     expect(wordField()).toHaveValue('chat');
     expect(translateButton()).toBeEnabled();
+  });
+
+  it('says when to retry after a per-minute limit', async () => {
+    renderWithEntries(entries, '/entries/new?text=chat', {
+      ok: false,
+      error: 'quota',
+      quota: { scope: 'minute', retryAfterSeconds: 36 },
+    });
+    await userEvent.click(translateButton());
+    expect(await screen.findByRole('alert')).toHaveTextContent(fr.ai.quota.minute(36));
+  });
+
+  it('says when the daily quota resets', async () => {
+    renderWithEntries(entries, '/entries/new?text=chat', {
+      ok: false,
+      error: 'quota',
+      quota: { scope: 'day' },
+    });
+    await userEvent.click(translateButton());
+    const time = formatResetTime(nextQuotaReset(new Date()));
+    expect(await screen.findByRole('alert')).toHaveTextContent(fr.ai.quota.day(time));
+    expect(wordField()).toHaveValue('chat');
   });
 
   it('warns about an existing word and asks before using the AI', async () => {

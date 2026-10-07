@@ -113,6 +113,15 @@ export const fr = {
       forbidden: 'Ce compte n’est pas autorisé à utiliser l’IA.',
       bad_request: 'Le mot saisi est invalide (100 caractères maximum).',
     },
+    /** Quota errors when the provider said which limit was hit. */
+    quota: {
+      minute: (seconds?: number) =>
+        seconds === undefined
+          ? 'Trop de demandes à l’IA en une minute. Réessaie dans un instant.'
+          : `Trop de demandes à l’IA en une minute. Réessaie dans ${String(seconds)} s.`,
+      day: (time: string) =>
+        `Le quota gratuit de l’IA est épuisé pour aujourd’hui. Il se réinitialise vers ${time}. En attendant, tu peux ajouter l’entrée manuellement.`,
+    },
   },
   editor: {
     newTitle: 'Nouvelle entrée',

@@ -216,6 +216,24 @@ describe('POST /api/translate — generation', () => {
     });
   });
 
+  it('tells which quota was hit, with Retry-After for a per-minute limit', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const minute = new AiError('quota', 'boom', {
+      quota: { scope: 'minute', retryAfterSeconds: 36 },
+    });
+    const response = await handler(fakeAi(minute).ai)(post(wordRequest));
+    expect(response.headers.get('Retry-After')).toBe('36');
+    expect(await read(response)).toEqual({
+      status: 429,
+      body: { error: 'quota', quota: { scope: 'minute', retryAfterSeconds: 36 } },
+    });
+
+    const day = new AiError('quota', 'boom', { quota: { scope: 'day' } });
+    const dayResponse = await handler(fakeAi(day).ai)(post(wordRequest));
+    expect(dayResponse.headers.get('Retry-After')).toBeNull();
+    expect((await read(dayResponse)).body).toEqual({ error: 'quota', quota: { scope: 'day' } });
+  });
+
   it('hides unexpected errors behind ai_unavailable', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const ai = fakeAi(new TypeError('bug')).ai;

@@ -2,6 +2,7 @@ import type { EntryContent } from '../domain/schemas.ts';
 import {
   TRANSLATE_PATH,
   translateResponseSchema,
+  type QuotaInfo,
   type TranslateErrorCode,
   type TranslateRequest,
 } from '../domain/translateApi.ts';
@@ -9,7 +10,7 @@ import {
 export type TranslateFailure = TranslateErrorCode | 'network' | 'cancelled';
 
 export type TranslateResult =
-  { ok: true; content: EntryContent } | { ok: false; error: TranslateFailure };
+  { ok: true; content: EntryContent } | { ok: false; error: TranslateFailure; quota?: QuotaInfo };
 
 export interface TranslateClientDeps {
   fetch: typeof fetch;
@@ -41,7 +42,7 @@ export async function requestTranslation(
     // Not our function's JSON (proxy error page, function crash…).
     return { ok: false, error: response.ok ? 'invalid_output' : 'ai_unavailable' };
   }
-  return 'content' in body.data
-    ? { ok: true, content: body.data.content }
-    : { ok: false, error: body.data.error };
+  if ('content' in body.data) return { ok: true, content: body.data.content };
+  const { error, quota } = body.data;
+  return quota ? { ok: false, error, quota } : { ok: false, error };
 }

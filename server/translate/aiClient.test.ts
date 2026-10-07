@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { ApiError } from '@google/genai';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AiError, createGeminiClient } from './aiClient.ts';
+import { AiError, createGeminiClient, quotaInfo } from './aiClient.ts';
 
 const generateContent = vi.fn();
 
@@ -48,6 +48,21 @@ async function failure(promise: Promise<unknown>): Promise<AiError> {
   if (!(error instanceof AiError)) throw new Error('Expected an AiError');
   return error;
 }
+
+/** A real 429 body from the Gemini API (free tier), as the SDK puts it in the message. */
+function quotaError(quotaId: string, retryDelay?: string) {
+  const details: unknown[] = [
+    {
+      '@type': 'type.googleapis.com/google.rpc.QuotaFailure',
+      violations: [{ quotaId, quotaValue: '5' }],
+    },
+  ];
+  if (retryDelay) details.push({ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay });
+  const body = { error: { code: 429, status: 'RESOURCE_EXHAUSTED', message: 'quota', details } };
+  return new ApiError({ message: JSON.stringify(body), status: 429 });
+}
+const PER_MINUTE = 'GenerateRequestsPerMinutePerProjectPerModel-FreeTier';
+const PER_DAY = 'GenerateRequestsPerDayPerProjectPerModel-FreeTier';
 
 const calledModels = () =>
   generateContent.mock.calls.map((call) => (call[0] as { model: string }).model);
@@ -150,5 +165,38 @@ describe('createGeminiClient', () => {
     );
     expect(error.kind).toBe('timeout');
     expect(calledModels()).toEqual(['model-a']);
+  });
+
+  it('says which limit stopped every model: the soonest retry when one is per minute', async () => {
+    generateContent
+      .mockRejectedValueOnce(quotaError(PER_DAY))
+      .mockRejectedValueOnce(quotaError(PER_MINUTE, '36.3s'));
+    const error = await failure(client().generateJson(options()));
+    expect(error.kind).toBe('quota');
+    expect(error.quota).toEqual({ scope: 'minute', retryAfterSeconds: 37 });
+  });
+
+  it('says the day is over when every model is out of its daily quota', async () => {
+    generateContent.mockRejectedValue(quotaError(PER_DAY));
+    expect((await failure(client().generateJson(options()))).quota).toEqual({ scope: 'day' });
+  });
+});
+
+describe('quotaInfo', () => {
+  it('reads a per-minute limit and its retry delay', () => {
+    expect(quotaInfo(quotaError(PER_MINUTE, '36s').message)).toEqual({
+      scope: 'minute',
+      retryAfterSeconds: 36,
+    });
+  });
+
+  it('reads a daily limit', () => {
+    expect(quotaInfo(quotaError(PER_DAY).message)).toEqual({ scope: 'day' });
+  });
+
+  it('ignores unknown or missing details', () => {
+    expect(quotaInfo('quota')).toBeUndefined();
+    expect(quotaInfo(quotaError('SomethingElse').message)).toBeUndefined();
+    expect(quotaInfo(JSON.stringify({ error: { code: 429 } }))).toBeUndefined();
   });
 });

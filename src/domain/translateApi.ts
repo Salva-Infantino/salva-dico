@@ -26,8 +26,18 @@ export const TRANSLATE_ERRORS = [
 ] as const;
 export type TranslateErrorCode = (typeof TRANSLATE_ERRORS)[number];
 
+/**
+ * Which free-tier limit stopped the AI: per minute (retry after a delay) or per day
+ * (reset at midnight Pacific time). Absent when the provider did not say.
+ */
+export const quotaInfoSchema = z.object({
+  scope: z.enum(['minute', 'day']),
+  retryAfterSeconds: z.number().int().nonnegative().optional(),
+});
+export type QuotaInfo = z.infer<typeof quotaInfoSchema>;
+
 export const translateResponseSchema = z.union([
   z.object({ content: entryContentSchema }),
-  z.object({ error: z.enum(TRANSLATE_ERRORS) }),
+  z.object({ error: z.enum(TRANSLATE_ERRORS), quota: quotaInfoSchema.optional() }),
 ]);
 export type TranslateResponse = z.infer<typeof translateResponseSchema>;

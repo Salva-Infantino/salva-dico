@@ -2,6 +2,7 @@ import { ENTRY_TYPES, type EntryType, type RomanceLang } from '../../src/domain/
 import { entryContentVariants, type EntryContent } from '../../src/domain/schemas.ts';
 import {
   translateRequestSchema,
+  type QuotaInfo,
   type TranslateErrorCode,
   type TranslateResponse,
 } from '../../src/domain/translateApi.ts';
@@ -40,11 +41,26 @@ const STATUS: Record<TranslateErrorCode, number> = {
   ai_unavailable: 503,
 };
 
-function json(body: TranslateResponse, status = 200): Response {
-  return Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
+function json(
+  body: TranslateResponse,
+  status = 200,
+  headers: Record<string, string> = {},
+): Response {
+  return Response.json(body, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
 }
 
 const fail = (error: TranslateErrorCode) => json({ error }, STATUS[error]);
+
+/** Tells the client which limit was hit, so it can say when to retry. */
+function failQuota(quota: QuotaInfo | undefined): Response {
+  if (!quota) return fail('quota');
+  const retryAfter = quota.retryAfterSeconds;
+  return json(
+    { error: 'quota', quota },
+    STATUS.quota,
+    retryAfter === undefined ? {} : { 'Retry-After': String(retryAfter) },
+  );
+}
 
 /**
  * POST /api/translate. Order matters: the token and the owner are checked before
@@ -83,6 +99,7 @@ export function createTranslateHandler(deps: TranslateDeps) {
       if (error instanceof AiError) {
         console.error(`translate: ${error.kind}`, error.cause ?? error.message);
         // A blocked answer (recitation filter…) is reported like any unusable output.
+        if (error.kind === 'quota') return failQuota(error.quota);
         return fail(error.kind === 'blocked' ? 'invalid_output' : error.kind);
       }
       console.error('translate: unexpected error', error);

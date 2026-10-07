@@ -31,6 +31,16 @@ describe('requestTranslation', () => {
     expect(await requestTranslation(d, request, signal())).toEqual({ ok: false, error: 'quota' });
   });
 
+  it('passes on which quota was hit', async () => {
+    const quota = { scope: 'minute', retryAfterSeconds: 36 } as const;
+    const d = deps(Response.json({ error: 'quota', quota }, { status: 429 }));
+    expect(await requestTranslation(d, request, signal())).toEqual({
+      ok: false,
+      error: 'quota',
+      quota,
+    });
+  });
+
   it('reports a network failure', async () => {
     expect(await requestTranslation(deps(new TypeError('offline')), request, signal())).toEqual({
       ok: false,

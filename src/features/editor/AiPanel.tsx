@@ -6,7 +6,9 @@ import { useTranslate } from '../../data/TranslatorContext.ts';
 import type { TranslateFailure } from '../../data/translateClient.ts';
 import { createDuplicateFinder } from '../../domain/duplicates.ts';
 import { ENTRY_TYPES, LANGS, type EntryType, type Lang } from '../../domain/languages.ts';
+import { formatResetTime, nextQuotaReset } from '../../domain/quotaReset.ts';
 import type { Entry, EntryContent } from '../../domain/schemas.ts';
+import type { QuotaInfo } from '../../domain/translateApi.ts';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus.ts';
 import { fr } from '../../i18n/fr.ts';
 import { DuplicateWarning } from './DuplicateWarning.tsx';
@@ -32,7 +34,7 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
   const translate = useTranslate();
   const online = useOnlineStatus();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Exclude<TranslateFailure, 'cancelled'> | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [confirmDuplicate, setConfirmDuplicate] = useState(false);
   const request = useRef<AbortController | null>(null);
 
@@ -63,7 +65,7 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
     if (controller.signal.aborted) return;
     setLoading(false);
     if (result.ok) onResult(result.content);
-    else if (result.error !== 'cancelled') setError(result.error);
+    else if (result.error !== 'cancelled') setError(errorMessage(result.error, result.quota));
   };
 
   const submit = (event: SyntheticEvent<HTMLFormElement>) => {
@@ -134,7 +136,7 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
       {!online && <p className="warning">{fr.ai.offline}</p>}
       {error && (
         <p role="alert" className="field-error">
-          {fr.ai.errors[error]}
+          {error}
         </p>
       )}
 
@@ -172,4 +174,17 @@ export function AiPanel({ value, onChange, entries, onResult }: AiPanelProps) {
       </ConfirmDialog>
     </form>
   );
+}
+
+/** The French message for a failed request; quota errors say when to retry. */
+function errorMessage(
+  error: Exclude<TranslateFailure, 'cancelled'>,
+  quota: QuotaInfo | undefined,
+): string {
+  if (error === 'quota' && quota) {
+    return quota.scope === 'minute'
+      ? fr.ai.quota.minute(quota.retryAfterSeconds)
+      : fr.ai.quota.day(formatResetTime(nextQuotaReset(new Date())));
+  }
+  return fr.ai.errors[error];
 }

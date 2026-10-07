@@ -238,6 +238,8 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   agreement, no literary tenses, words in their dictionary form without article, several translations only
   when meanings genuinely differ.
 - Errors (quota, network, invalid output) are shown to me in French, without losing what I typed.
+  Quota errors say which limit was hit (from Gemini's 429 details): retry in N seconds (per minute), or
+  the local time of the daily reset (midnight Pacific).
 - Unit-test the function with a mocked Gemini client.
 
 ## 10. Roadmap (one step at a time, approval before each)
