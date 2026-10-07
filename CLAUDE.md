@@ -180,8 +180,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - The 4 languages on **one screen**: the shown language large, then the 3 others, each with its badge.
 - Secondary details (English past forms of verbs) are shown **discreetly**: lighter font weight or italic,
   so the main word stands out.
-- **Verbs:** the 4 infinitives side by side. Tapping one opens that language's conjugation
-  (all its tenses). Conjugations are never compared across languages.
+- **Verbs:** the 4 infinitives side by side. Tapping a language's card (or row, when it has several
+  infinitives) opens that language's conjugation (all its tenses). Conjugations are never compared
+  across languages.
 - Text-to-speech button per translation (Web Speech API). Hide it when no voice is available for that language.
 - Mastered switch, Edit, Delete (with confirmation).
 
@@ -231,6 +232,12 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
 - Languages are identified everywhere by a code badge (FR, EN, ES, IT) in the language's own color
   (FR blue, EN red, ES yellow, IT green). No flags (owner's choice in the redesign; flag emojis also fail on Windows).
 - Accessible: sufficient contrast in both themes, visible focus states, swipe actions also reachable by buttons.
+- French typography: UI strings in `fr.ts` are written with plain spaces; `withFrenchSpacing`
+  (`src/i18n/typography.ts`) makes the spaces before `: ; ! ? »`, after `«`, between a number and its unit
+  and before the `·` separator non-breaking, so punctuation never starts a line. Text outside `fr.ts`
+  uses `fr.common.colon` / `fr.common.separator`. In tests, `plain()` (`src/test/text.ts`) matches them.
+- The quiz session fits the screen without scrolling on phones (checked from 375x667 to 393x852 with
+  every card turned face up); a compact layout applies up to 820 px tall.
 
 ## 9. AI function (`netlify/functions/translate`)
 - Input: `{ sourceLang, text, type? }` plus the Firebase ID token in the `Authorization` header.
@@ -312,8 +319,16 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   Redesign complete.
 - Roadmap complete. Deployed on Netlify (`salva-dico.netlify.app`), sign-in checked in production
   (2026-10-06). CSP errors from `about:srcdoc` in the console come from Netlify's injected badge, not the app.
+- Follow-ups (2026-10-07), deployed: the whole language card opens a verb's conjugation and its back
+  button goes back in history; AI resilience (25 s per attempt, Flash-Lite first for its free-tier
+  limits, quota errors saying when to retry); the quiz fits phone screens (speak button next to the
+  type label); French typography; words displayed with a capital first letter; favicon, PWA icons
+  (`pnpm icons`, `scripts/generate-icons.ts`) and theme color from the four-dot brand mark.
 
 ## 12. Future ideas (not in scope now — do not implement, but avoid blocking them)
+- **Conjugations on demand:** create verbs with their infinitives only (one AI request, like a word), and
+  generate one language's conjugation when its page is opened, then save it. Fewer requests on the
+  free tier. Discussed 2026-10-07; local conjugation data was ruled out (app weight, uncertain sources).
 - **Latin American Spanish variants:** optional `region?: 'es' | 'latam'` on Spanish translations,
   badge display (ex. *coche* 🇪🇸 · *carro* 🌎), quiz setting "accepted variant", conjugation toggle
   *vosotros* → *ustedes*, optional *voseo* present forms. Prefer additive schema changes via `schemaVersion`.

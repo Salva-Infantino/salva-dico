@@ -140,10 +140,17 @@ from the Zod schemas (`z.toJSONSchema`), then validates the answer with Zod agai
 - **Verbs are generated in several requests**: the entry first, then one request per conjugation,
   in parallel. Asking for three full conjugation tables at once trips Gemini's recitation filter
   (empty answer).
+- **Free tier only**, by design. Its limits are per model: `gemini-3.5-flash-lite` comes first
+  (15 requests per minute, 500 per day, against 5 and 20 for the Flash models, and a verb takes
+  4 or 5 requests at once), checked on real verbs for speed and accuracy. Other free providers were
+  evaluated and ruled out (paid-only API, too slow, or less accurate conjugations).
 - **Resilience**: retries on overload or blocked answers, then **fallback models**
   (`GEMINI_MODEL` is a comma-separated list). Each attempt has its own 25 s limit, so a model
   that does not answer is left for the next one instead of using up the overall 50 s limit
   (under Netlify's 60 s).
+- **Quota errors say when to retry**: the function reads Gemini's 429 details (per-minute limit
+  with its retry delay, or daily limit) and the app shows "retry in N s" or the local time of the
+  daily reset (midnight Pacific time).
 - Errors are shown in French in the app, without losing what was typed. Nothing is saved before the
   review screen is validated.
 
