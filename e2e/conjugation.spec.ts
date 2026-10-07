@@ -13,8 +13,12 @@ test('opens the conjugation of one language from a verb entry', async ({ page })
   await expect(passato).toContainText('io sono andato/a');
   await expect(passato).toContainText('passé composé');
 
-  await page.getByRole('link', { name: "Retour à l'entrée" }).click();
+  await page.getByRole('button', { name: "Retour à l'entrée" }).click();
   await expect(page.getByRole('link', { name: 'Conjugaison de « andare »' })).toBeVisible();
+
+  // The whole language card opens the conjugation, not only the word: click its corner.
+  await page.getByRole('region', { name: 'Espagnol' }).click({ position: { x: 12, y: 12 } });
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('ir');
 });
 
 test('edits one cell of a conjugation', async ({ page }, testInfo) => {

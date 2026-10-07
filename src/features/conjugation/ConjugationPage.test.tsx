@@ -1,4 +1,5 @@
 import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -91,5 +92,23 @@ describe('ConjugationPage', () => {
       expect(screen.getByRole('heading', { name: fr.conjugation.notFound })).toBeInTheDocument();
       unmount();
     }
+  });
+
+  it('goes back to the entry, whose back button then returns to the dictionary', async () => {
+    renderWithEntries(entries, '/?q=aller');
+    await userEvent.click(screen.getByRole('link', { name: /andare/ }));
+    await userEvent.click(screen.getByRole('link', { name: fr.conjugation.open('ir') }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/entries/aller/conjugation/es/0');
+
+    await userEvent.click(screen.getByRole('button', { name: fr.conjugation.back }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/entries/aller?lang=fr');
+    await userEvent.click(screen.getByRole('button', { name: fr.entry.back }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/?q=aller');
+  });
+
+  it('goes to the entry when opened directly', async () => {
+    renderWithEntries(entries, '/entries/aller/conjugation/es/0');
+    await userEvent.click(screen.getByRole('button', { name: fr.conjugation.back }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/entries/aller?lang=es');
   });
 });

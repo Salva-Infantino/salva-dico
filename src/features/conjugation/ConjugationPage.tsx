@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
@@ -20,6 +20,8 @@ type RomanceConjugation = ConjugationFR | ConjugationES | ConjugationIT;
 export function ConjugationPage() {
   const { id, lang, index } = useParams();
   const state = useEntries();
+  const navigate = useNavigate();
+  const location = useLocation();
   const entry =
     state.status === 'ready' ? state.entries.find((e) => e.id === id && !e.deleted) : undefined;
   const verb =
@@ -37,14 +39,20 @@ export function ConjugationPage() {
   return (
     <main className="page conjugation">
       <nav className="page-top">
-        <Link
-          to={`/entries/${entry.id}?lang=${lang}`}
+        <button
+          type="button"
           className="round-button"
           aria-label={fr.conjugation.back}
           title={fr.conjugation.back}
+          onClick={() => {
+            // Back in history (a link would push the entry again, and its own back button
+            // would then return here); to the entry when opened directly.
+            if (location.key === 'default') void navigate(`/entries/${entry.id}?lang=${lang}`);
+            else void navigate(-1);
+          }}
         >
           <Icon name="back" />
-        </Link>
+        </button>
       </nav>
       <header className={`hero lang-${lang}`}>
         <p className="hero-kind">
