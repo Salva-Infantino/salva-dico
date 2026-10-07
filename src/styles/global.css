@@ -1425,6 +1425,39 @@ button.switch[aria-checked='true'] .switch-track::after {
   color: inherit;
 }
 
+/* Verbs: the infinitive's link covers the whole language card, or its own row when the
+   language has several infinitives. The speak button stays on top. */
+.lang-card,
+.preview-lang,
+.translation-list li:has(> a.headword):not(:only-child) {
+  position: relative;
+}
+
+.translation-list a.headword::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.translation-list a.headword:focus-visible {
+  outline: none;
+}
+
+.translation-list a.headword:focus-visible::after {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.translation-list button.speak-button {
+  position: relative;
+  z-index: 1;
+}
+
+.lang-card:has(a.headword):hover {
+  border-color: var(--color-accent-text);
+}
+
 /* Grammar details stay discreet so the main word stands out. */
 .grammar {
   font-weight: 400;
