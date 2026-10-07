@@ -1,5 +1,5 @@
 import { devices, expect, test, type Page } from '@playwright/test';
-import { signIn } from '../../e2e/helpers.ts';
+import { entryRow, signIn } from '../../e2e/helpers.ts';
 
 const OUT = 'docs/screenshots';
 const desktop = { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 };
@@ -21,6 +21,9 @@ test.describe('desktop, light', () => {
 
   test('dictionary', async ({ page }) => {
     await signIn(page);
+    // Fill the preview panel next to the table.
+    await entryRow(page, 'andare').click();
+    await expect(page.getByRole('heading', { name: 'aller', exact: true })).toBeVisible();
     await shot(page, 'dictionary');
   });
 });
@@ -31,7 +34,7 @@ test.describe('desktop, dark', () => {
   test('conjugation', async ({ page }) => {
     await signIn(page);
     await page.getByRole('searchbox', { name: 'Rechercher' }).fill('se lever');
-    await page.getByRole('link', { name: /alzarsi/ }).click();
+    await entryRow(page, 'alzarsi').click();
     await page.getByRole('link', { name: 'Conjugaison de « levantarse »' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('levantarse');
     await shot(page, 'conjugation');

@@ -8,11 +8,11 @@ I use it every day on my phone and on desktop. It is also a portfolio project: t
 security model, the tests and the CI matter as much as the features.
 
 <p>
-  <img src="docs/screenshots/dictionary.png" alt="Dictionary: each entry in French, English, Spanish and Italian, with flags, a search bar and filters" width="100%">
+  <img src="docs/screenshots/dictionary.png" alt="Dictionary on desktop: a table of the entries in French, English, Spanish and Italian with colored language badges, a search bar, a type filter and the selected verb aller in a preview panel" width="100%">
 </p>
 <p>
-  <img src="docs/screenshots/conjugation.png" alt="Spanish conjugation of levantarse in dark theme: six tenses and the imperative" width="58%">
-  <img src="docs/screenshots/quiz-phone.png" alt="Quiz card on a phone: se lever, with English and Italian answers turned face up" width="19%">
+  <img src="docs/screenshots/conjugation.png" alt="Spanish conjugation of levantarse in dark theme: one card per tense, with the French tense name" width="58%">
+  <img src="docs/screenshots/quiz-phone.png" alt="Quiz card on a phone: se lever, with the English and Italian answers turned face up and the Spanish one still hidden" width="19%">
   <img src="docs/screenshots/score-phone.png" alt="End of a quiz on a phone, dark theme: a 100 % score ring" width="19%">
 </p>
 
