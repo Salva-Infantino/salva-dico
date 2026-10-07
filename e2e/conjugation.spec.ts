@@ -7,7 +7,7 @@ test('opens the conjugation of one language from a verb entry', async ({ page })
   await entryRow(page, 'andare').click();
 
   await page.getByRole('link', { name: 'Conjugaison de « andare »' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('andare');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Andare');
   await expect(page.getByText('Auxiliaire : essere')).toBeVisible();
   const passato = page.getByRole('region', { name: /Passato prossimo/ });
   await expect(passato).toContainText('io sono andato/a');
@@ -18,7 +18,7 @@ test('opens the conjugation of one language from a verb entry', async ({ page })
 
   // The whole language card opens the conjugation, not only the word: click its corner.
   await page.getByRole('region', { name: 'Espagnol' }).click({ position: { x: 12, y: 12 } });
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('ir');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ir');
 });
 
 test('edits one cell of a conjugation', async ({ page }, testInfo) => {

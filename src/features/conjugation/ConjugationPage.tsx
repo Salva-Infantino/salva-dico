@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
+import { capitalize } from '../../domain/display.ts';
 import { IMPERATIVE, IMPERATIVE_LABELS, TENSES, withPronoun } from '../../domain/conjugation.ts';
 import { isLang, type RomanceLang } from '../../domain/languages.ts';
 import type {
@@ -60,7 +61,7 @@ export function ConjugationPage() {
           {fr.entry.kind(fr.langs[lang], fr.conjugation.title)}
         </p>
         <h1 className="hero-words" lang={lang}>
-          {verb.text}
+          {capitalize(verb.text)}
         </h1>
         {'auxiliary' in verb.conjugation && (
           <p className="hero-meta">

@@ -32,3 +32,8 @@ export function newEntryLink(page: Page): Locator {
 export function isWide(page: Page): boolean {
   return (page.viewportSize()?.width ?? 0) >= 1024;
 }
+
+/** Words are displayed with a capital first letter (stored as typed). */
+export function displayed(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}

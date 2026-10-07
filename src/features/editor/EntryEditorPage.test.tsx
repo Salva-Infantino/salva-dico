@@ -121,7 +121,7 @@ describe('EntryEditorPage — new entry', () => {
     await within(section('Français')).findByText(/existe déjà en français/);
     expect(
       within(section('Français')).getByRole('link', {
-        name: fr.editor.openExisting('garçon', fr.entryTypes.word),
+        name: fr.editor.openExisting('Garçon', fr.entryTypes.word),
       }),
     ).toHaveAttribute('href', '/entries/garcon');
 

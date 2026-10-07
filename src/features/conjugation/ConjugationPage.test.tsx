@@ -21,7 +21,7 @@ const forms = (region: HTMLElement) =>
 describe('ConjugationPage', () => {
   it('shows every French tense in order, with elided pronouns', () => {
     renderWithEntries(entries, '/entries/aller/conjugation/fr/0');
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('aller');
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Aller');
     expect(screen.getByText(/Auxiliaire/)).toHaveTextContent('Auxiliaire : être');
     expect(
       screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent),
@@ -96,7 +96,7 @@ describe('ConjugationPage', () => {
 
   it('goes back to the entry, whose back button then returns to the dictionary', async () => {
     renderWithEntries(entries, '/?q=aller');
-    await userEvent.click(screen.getByRole('link', { name: /andare/ }));
+    await userEvent.click(screen.getByRole('link', { name: /Andare/ }));
     await userEvent.click(screen.getByRole('link', { name: fr.conjugation.open('ir') }));
     expect(screen.getByTestId('location')).toHaveTextContent('/entries/aller/conjugation/es/0');
 

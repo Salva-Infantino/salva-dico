@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { newEntryLink, signIn } from './helpers.ts';
+import { displayed, newEntryLink, signIn } from './helpers.ts';
 
 // The AI function is intercepted: no real Gemini call from the E2E tests.
 
@@ -45,7 +45,9 @@ test('translates a word with the AI, reviews it and saves it', async ({ page }, 
   await english.fill(`${word}-en-fixed`);
   await page.getByRole('button', { name: 'Enregistrer' }).click();
 
-  await expect(page.getByRole('region', { name: 'Anglais' })).toContainText(`${word}-en-fixed`);
+  await expect(page.getByRole('region', { name: 'Anglais' })).toContainText(
+    displayed(`${word}-en-fixed`),
+  );
 });
 
 test('shows AI errors in French and keeps the typed word', async ({ page }) => {

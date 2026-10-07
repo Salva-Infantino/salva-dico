@@ -144,6 +144,8 @@ Decisions behind this model:
 - Imperative: affirmative and negative, 3 persons (2sg, 1pl, 2pl). Negative forms are stored in full, not derived,
   because ES (subjunctive) and IT 2sg (infinitive) are irregular. No formal imperative (usted / Lei) for now.
 - No example sentences.
+- Words are displayed with a capital first letter (`capitalize` in `src/domain/display.ts`): display
+  only, stored as typed, so search, duplicates and exports are unaffected. Conjugated forms are not.
 
 Pronoun labels per language (display only, not stored):
 FR `je, tu, il/elle, nous, vous, ils/elles` · IT `io, tu, lui/lei, noi, voi, loro` ·

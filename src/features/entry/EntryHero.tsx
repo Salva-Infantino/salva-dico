@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { SpeakButton } from '../../components/SpeakButton.tsx';
 import { useEntryActions } from '../../data/EntryActionsContext.ts';
-import { headwords } from '../../domain/forms.ts';
+import { displayedHeadwords, headwords } from '../../domain/forms.ts';
 import type { Lang } from '../../domain/languages.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { useSpeech } from '../../hooks/useSpeech.ts';
@@ -26,6 +26,7 @@ export function EntryHero({
   const actions = useEntryActions();
   const speech = useSpeech();
   const words = headwords(entry, lang);
+  const shown = displayedHeadwords(entry, lang);
   const labelId = `mastered-label-${entry.id}`;
   const hintId = `mastered-hint-${entry.id}`;
 
@@ -40,7 +41,7 @@ export function EntryHero({
       </p>
       <div className="hero-main">
         <Heading className="hero-words" lang={lang}>
-          {words.map((word, i) => (
+          {shown.map((word, i) => (
             <span key={i} className="hero-word">
               {word}
             </span>
@@ -58,7 +59,7 @@ export function EntryHero({
               aria-label={fr.conjugation.open(word)}
             >
               {words.length > 1
-                ? `${fr.conjugation.title}${fr.common.separator}${word}`
+                ? `${fr.conjugation.title}${fr.common.separator}${shown[i] ?? word}`
                 : fr.conjugation.title}
             </Link>
           ))}

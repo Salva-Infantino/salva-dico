@@ -1,5 +1,5 @@
 import { Link } from 'react-router';
-import { headwords } from '../../domain/forms.ts';
+import { displayedHeadwords } from '../../domain/forms.ts';
 import type { Lang } from '../../domain/languages.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -22,7 +22,10 @@ export function DuplicateWarning({
         {entries.map((entry) => (
           <li key={entry.id}>
             <Link to={`/entries/${entry.id}`}>
-              {fr.editor.openExisting(headwords(entry, 'fr').join(', '), fr.entryTypes[entry.type])}
+              {fr.editor.openExisting(
+                displayedHeadwords(entry, 'fr').join(', '),
+                fr.entryTypes[entry.type],
+              )}
             </Link>
           </li>
         ))}

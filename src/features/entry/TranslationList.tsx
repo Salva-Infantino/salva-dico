@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { SpeakButton } from '../../components/SpeakButton.tsx';
+import { capitalize } from '../../domain/display.ts';
 import type { Lang } from '../../domain/languages.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { useSpeech, type Speech } from '../../hooks/useSpeech.ts';
@@ -20,7 +21,7 @@ function items(entry: Entry, lang: Lang, speech: Speech) {
       return entry.translations[lang].map((t, i) => (
         <li key={i}>
           <span className="headword" lang={lang}>
-            {t.text}
+            {capitalize(t.text)}
           </span>
           <SpeakButton text={t.text} lang={lang} speech={speech} />
         </li>
@@ -36,7 +37,7 @@ function items(entry: Entry, lang: Lang, speech: Speech) {
             to={`/entries/${entry.id}/conjugation/${lang}/${String(i)}`}
             aria-label={fr.conjugation.open(t.text)}
           >
-            {t.text}
+            {capitalize(t.text)}
           </Link>
           <SpeakButton text={t.text} lang={lang} speech={speech} />
           {'pastSimple' in t.conjugation && (

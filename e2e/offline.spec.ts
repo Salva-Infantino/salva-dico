@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { signIn } from './helpers.ts';
+import { displayed, signIn } from './helpers.ts';
 
 // Playwright only drives service workers reliably in Chromium: in Firefox and WebKit
 // an offline reload cannot be served from the precache, so the scenario is skipped there.
@@ -38,7 +38,9 @@ test('works offline: reload, search, add, master, quiz, then syncs on reconnect'
   await field('Espagnol').fill(`${word}-es`);
   await field('Italien').fill(`${word}-it`);
   await page.getByRole('button', { name: 'Enregistrer' }).click();
-  await expect(page.getByRole('region', { name: 'Italien' })).toContainText(`${word}-it`);
+  await expect(page.getByRole('region', { name: 'Italien' })).toContainText(
+    displayed(`${word}-it`),
+  );
 
   const mastered = page.getByRole('switch', { name: 'Maîtrisé' });
   await mastered.click();

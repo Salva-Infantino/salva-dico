@@ -4,7 +4,7 @@ import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
 import { SpeakButton } from '../../components/SpeakButton.tsx';
 import { useEntries } from '../../data/EntriesContext.ts';
-import { headwords } from '../../domain/forms.ts';
+import { displayedHeadwords, headwords } from '../../domain/forms.ts';
 import {
   quizReducer,
   quizSettingsSchema,
@@ -170,7 +170,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
               </div>
             </div>
             <ul className="quiz-words">
-              {headwords(card, settings.source).map((word, i) => (
+              {displayedHeadwords(card, settings.source).map((word, i) => (
                 <li key={i} lang={settings.source}>
                   {word}
                 </li>
@@ -195,7 +195,7 @@ function QuizSession({ settings }: { settings: QuizSettings }) {
                   <LangBadge lang={lang} />
                   {flipped ? (
                     <span className="quiz-target-words" lang={lang}>
-                      {headwords(card, lang).join(', ')}
+                      {displayedHeadwords(card, lang).join(', ')}
                     </span>
                   ) : (
                     <span className="quiz-target-hidden">{fr.quiz.hidden}</span>

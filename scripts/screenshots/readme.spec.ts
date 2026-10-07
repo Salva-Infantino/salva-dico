@@ -23,7 +23,7 @@ test.describe('desktop, light', () => {
     await signIn(page);
     // Fill the preview panel next to the table.
     await entryRow(page, 'andare').click();
-    await expect(page.getByRole('heading', { name: 'aller', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Aller', exact: true })).toBeVisible();
     await shot(page, 'dictionary');
   });
 });
@@ -36,7 +36,7 @@ test.describe('desktop, dark', () => {
     await page.getByRole('searchbox', { name: 'Rechercher' }).fill('se lever');
     await entryRow(page, 'alzarsi').click();
     await page.getByRole('link', { name: 'Conjugaison de « levantarse »' }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('levantarse');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Levantarse');
     await shot(page, 'conjugation');
   });
 });

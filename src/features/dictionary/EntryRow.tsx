@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Link } from 'react-router';
 import { Icon } from '../../components/Icon.tsx';
 import { LangBadge } from '../../components/LangBadge.tsx';
-import { headwords } from '../../domain/forms.ts';
+import { displayedHeadwords } from '../../domain/forms.ts';
 import { LANGS, type Lang } from '../../domain/languages.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
@@ -15,7 +15,7 @@ export interface RowProps {
   selected?: boolean;
 }
 
-const text = (entry: Entry, lang: Lang) => headwords(entry, lang).join(', ');
+const text = (entry: Entry, lang: Lang) => displayedHeadwords(entry, lang).join(', ');
 
 function MasteredMark() {
   return (

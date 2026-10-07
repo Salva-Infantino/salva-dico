@@ -98,21 +98,21 @@ describe('QuizSessionPage', () => {
   it('shows the source card and face-down target cards', async () => {
     await startSession({ targets: ['en', 'it'] });
     expect(screen.getByText(fr.quiz.progress(1, 2))).toBeInTheDocument();
-    expect(within(source()).getByText('garçon')).toBeInTheDocument();
+    expect(within(source()).getByText('Garçon')).toBeInTheDocument();
     expect(target('Anglais')).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.queryByText('boy')).toBeNull();
+    expect(screen.queryByText('Boy')).toBeNull();
   });
 
   it('flips one card or all of them, with the mouse or the keyboard', async () => {
     await startSession({ targets: ['en', 'es', 'it'] });
     await userEvent.click(target('Anglais'));
-    expect(target('Anglais')).toHaveTextContent('boy');
+    expect(target('Anglais')).toHaveTextContent('Boy');
     expect(target('Espagnol')).toHaveAttribute('aria-pressed', 'false');
 
     await userEvent.keyboard('3');
-    expect(target('Italien')).toHaveTextContent('ragazzo');
+    expect(target('Italien')).toHaveTextContent('Ragazzo');
     await userEvent.keyboard(' ');
-    expect(target('Espagnol')).toHaveTextContent('chico');
+    expect(target('Espagnol')).toHaveTextContent('Chico');
 
     await userEvent.click(screen.getByRole('button', { name: fr.quiz.flipAll }));
     expect(target('Espagnol')).toHaveAttribute('aria-pressed', 'false');
@@ -122,11 +122,11 @@ describe('QuizSessionPage', () => {
     await startSession({ targets: ['en'] });
     // garçon: à réviser, then aller: je connais.
     await userEvent.click(screen.getByRole('button', { name: new RegExp(fr.quiz.review) }));
-    expect(within(source()).getByText('aller')).toBeInTheDocument();
+    expect(within(source()).getByText('Aller')).toBeInTheDocument();
     await userEvent.keyboard('{ArrowRight}');
 
     expect(screen.getByText(fr.quiz.reviewProgress(1, 1))).toBeInTheDocument();
-    expect(within(source()).getByText('garçon')).toBeInTheDocument();
+    expect(within(source()).getByText('Garçon')).toBeInTheDocument();
     // Still unknown: the card does not come back a third time.
     await userEvent.keyboard('{ArrowLeft}');
 
@@ -153,9 +153,9 @@ describe('QuizSessionPage', () => {
     };
 
     drag(30);
-    expect(within(source()).getByText('garçon')).toBeInTheDocument();
+    expect(within(source()).getByText('Garçon')).toBeInTheDocument();
     drag(200);
-    expect(within(source()).getByText('aller')).toBeInTheDocument();
+    expect(within(source()).getByText('Aller')).toBeInTheDocument();
     drag(-200);
     expect(screen.getByText(fr.quiz.reviewProgress(1, 1))).toBeInTheDocument();
   });
@@ -174,7 +174,7 @@ describe('QuizSessionPage', () => {
     document.body.append(input);
     input.focus();
     await userEvent.keyboard('{ArrowRight}');
-    expect(within(source()).getByText('grand')).toBeInTheDocument();
+    expect(within(source()).getByText('Grand')).toBeInTheDocument();
     input.remove();
   });
 });

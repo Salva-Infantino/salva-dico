@@ -104,7 +104,7 @@ describe('AI mode', () => {
     await userEvent.type(wordField(), 'le garçon');
     expect(screen.getByText(/existe déjà en français/)).toBeInTheDocument();
     expect(
-      screen.getByRole('link', { name: fr.editor.openExisting('garçon', fr.entryTypes.word) }),
+      screen.getByRole('link', { name: fr.editor.openExisting('Garçon', fr.entryTypes.word) }),
     ).toHaveAttribute('href', '/entries/garcon');
 
     await userEvent.click(translateButton());

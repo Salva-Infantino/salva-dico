@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { newEntryLink, signIn } from './helpers.ts';
+import { displayed, newEntryLink, signIn } from './helpers.ts';
 
 // Words are unique per run and browser: specs run in parallel on shared emulator data.
 // The "zz" prefix sorts them after the seeded entries.
@@ -23,7 +23,9 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
 
   // The new entry opens right away (local write, synced in the background).
   await expect(page.getByRole('status').filter({ hasText: 'Entrée ajoutée.' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Italien' })).toContainText(`${word}-it`);
+  await expect(page.getByRole('region', { name: 'Italien' })).toContainText(
+    displayed(`${word}-it`),
+  );
 
   // Edit: add a second English translation.
   await page.getByRole('link', { name: 'Modifier' }).click();
@@ -37,7 +39,9 @@ test('adds, edits, masters and deletes an entry', async ({ page }, testInfo) => 
     .nth(1)
     .fill(`${word}-en2`);
   await page.getByRole('button', { name: 'Enregistrer' }).click();
-  await expect(page.getByRole('region', { name: 'Anglais' })).toContainText(`${word}-en2`);
+  await expect(page.getByRole('region', { name: 'Anglais' })).toContainText(
+    displayed(`${word}-en2`),
+  );
 
   // Mastered switch.
   const mastered = page.getByRole('switch', { name: 'Maîtrisé' });

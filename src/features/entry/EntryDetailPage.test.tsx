@@ -34,7 +34,7 @@ describe('EntryDetailPage', () => {
       expect(card(lang)).toBeInTheDocument();
     }
     expect(container.querySelectorAll('.lang-badge')).toHaveLength(4);
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^arbre$/);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Arbre$/);
     expect(card('Français')).toHaveTextContent(
       plain(fr.entry.kind('Français', fr.entryTypes.word)),
     );
@@ -42,26 +42,26 @@ describe('EntryDetailPage', () => {
 
   it('shows the word of each language', () => {
     renderWithEntries(entries, '/entries/arbre');
-    expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent(/^albero$/);
-    expect(within(card('Anglais')).getByText('tree')).toHaveClass('headword');
+    expect(within(card('Italien')).getByRole('listitem')).toHaveTextContent(/^Albero$/);
+    expect(within(card('Anglais')).getByText('Tree')).toHaveClass('headword');
   });
 
   it('puts the language shown in the dictionary first', () => {
     renderWithEntries(entries, '/entries/arbre?lang=it');
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^albero$/);
-    expect(within(card('Français')).getByRole('listitem')).toHaveTextContent(/^arbre$/);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^Albero$/);
+    expect(within(card('Français')).getByRole('listitem')).toHaveTextContent(/^Arbre$/);
   });
 
   it('shows infinitives, and English past forms', () => {
     renderWithEntries(entries, '/entries/aller');
-    expect(within(card('Espagnol')).getByRole('listitem')).toHaveTextContent('ir');
+    expect(within(card('Espagnol')).getByRole('listitem')).toHaveTextContent('Ir');
     expect(within(card('Anglais')).getByText('went · gone · irrégulier')).toHaveClass('details');
   });
 
   it('lists every translation of a language with equal weight', () => {
     renderWithEntries(entries, '/entries/svp?lang=en');
     const items = within(card('Français')).getAllByRole('listitem');
-    expect(items.map((item) => item.textContent)).toEqual(["s'il vous plaît", "s'il te plaît"]);
+    expect(items.map((item) => item.textContent)).toEqual(["S'il vous plaît", "S'il te plaît"]);
   });
 
   it('handles unknown and deleted entries', () => {
@@ -72,7 +72,7 @@ describe('EntryDetailPage', () => {
 
   it('goes back to the search it came from', async () => {
     renderWithEntries(entries, '/?q=arbre');
-    await userEvent.click(screen.getByRole('link', { name: /albero/ }));
+    await userEvent.click(screen.getByRole('link', { name: /Albero/ }));
     expect(screen.getByTestId('location')).toHaveTextContent('/entries/arbre?lang=fr');
 
     await userEvent.click(screen.getByRole('button', { name: fr.entry.back }));

@@ -45,11 +45,11 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await page.getByRole('searchbox', { name: 'Rechercher' }).fill('aller');
       await entryRow(page, 'andare').click();
       // Entry page on phones (h1), preview next to the table on wide screens (h2).
-      await expect(page.getByRole('heading', { name: 'aller', exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Aller', exact: true })).toBeVisible();
       await audit(page, 'entry (page or preview)');
 
       await page.getByRole('link', { name: 'Conjugaison de « andare »' }).click();
-      await expect(page.getByRole('heading', { level: 1 })).toContainText('andare');
+      await expect(page.getByRole('heading', { level: 1 })).toContainText('Andare');
       await audit(page, 'conjugation');
 
       await page.goBack();

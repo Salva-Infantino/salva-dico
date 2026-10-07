@@ -38,21 +38,21 @@ describe('DictionaryPage', () => {
 
   it('shows the shown language first, then the 3 others with their badges', () => {
     renderWithEntries(entries);
-    const row = screen.getByRole('link', { name: /ragazzo/ });
-    expect(row).toHaveTextContent(/^garçon/);
+    const row = screen.getByRole('link', { name: /Ragazzo/ });
+    expect(row).toHaveTextContent(/^Garçon/);
     for (const lang of ['Anglais', 'Espagnol', 'Italien']) {
       expect(within(row).getByText(lang)).toHaveClass('visually-hidden');
     }
-    expect(row).toHaveTextContent('boy');
+    expect(row).toHaveTextContent('Boy');
     expect(
-      within(screen.getByRole('link', { name: /andare/ })).getByText(fr.home.verbBadge),
+      within(screen.getByRole('link', { name: /Andare/ })).getByText(fr.home.verbBadge),
     ).toBeInTheDocument();
   });
 
   it('marks mastered entries', () => {
     renderWithEntries([makeEntry(arbreContent, { id: 'arbre', mastered: true })]);
     expect(
-      within(screen.getByRole('link', { name: /albero/ })).getByRole('img', {
+      within(screen.getByRole('link', { name: /Albero/ })).getByRole('img', {
         name: fr.home.mastered,
       }),
     ).toBeInTheDocument();
@@ -65,10 +65,10 @@ describe('DictionaryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/?lang=it');
     // albero, andare, grande, ragazzo
     expect(rows().map((row) => row.textContent.slice(0, 6))).toEqual([
-      'albero',
-      'andare',
-      'grande',
-      'ragazz',
+      'Albero',
+      'Andare',
+      'Grande',
+      'Ragazz',
     ]);
     expect(rows()[0]).toHaveAttribute('href', '/entries/arbre?lang=it');
   });
@@ -97,7 +97,7 @@ describe('DictionaryPage', () => {
     await userEvent.click(screen.getByRole('radio', { name: fr.home.typeFilters.verb }));
 
     expect(await screen.findByText(fr.home.resultCount(1))).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /andare/ })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Andare/ })).toBeInTheDocument();
     expect(screen.getByTestId('location')).toHaveTextContent('/?type=verb');
 
     await userEvent.click(screen.getByRole('radio', { name: fr.home.allTypes }));
@@ -107,7 +107,7 @@ describe('DictionaryPage', () => {
   it('searches the 4 languages whatever the shown language', async () => {
     renderWithEntries(entries, '/?q=big&lang=it');
     expect(await screen.findByText(fr.home.resultCount(1))).toBeInTheDocument();
-    expect(rows()[0]).toHaveTextContent(/^grande/);
+    expect(rows()[0]).toHaveTextContent(/^Grande/);
   });
 
   it('says when the dictionary is empty', () => {
