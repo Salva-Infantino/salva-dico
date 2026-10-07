@@ -46,7 +46,8 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           display: 'standalone',
           background_color: '#f4f3fa',
-          theme_color: '#1f4e79',
+          // Light page background; index.html switches it to the dark one in the dark theme.
+          theme_color: '#f4f3fa',
           icons: [
             { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
             { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
