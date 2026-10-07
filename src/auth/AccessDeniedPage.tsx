@@ -13,7 +13,9 @@ export function AccessDeniedPage({ uid, email }: { uid: string; email: string | 
       <p>{fr.auth.deniedText}</p>
       {email && <p className="muted">{email}</p>}
       <p className="muted">
-        {fr.auth.accountId} : <code className="selectable">{uid}</code>
+        {fr.auth.accountId}
+        {fr.common.colon}
+        <code className="selectable">{uid}</code>
       </p>
       <button type="button" className="secondary" onClick={() => void signOut()}>
         {fr.auth.signOut}

@@ -11,6 +11,7 @@ import {
   grandContent,
   makeEntry,
 } from '../../test/fixtures.ts';
+import { plain } from '../../test/text.ts';
 import { renderWithEntries } from '../../test/renderWithEntries.tsx';
 import { loadQuizSettings } from './quizSettingsStorage.ts';
 
@@ -132,7 +133,7 @@ describe('QuizSessionPage', () => {
     expect(screen.getByRole('heading', { name: fr.quiz.doneTitle })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: fr.quiz.scoreLabel(50) })).toBeInTheDocument();
     expect(screen.getByText(fr.quiz.score(1, 2))).toBeInTheDocument();
-    expect(screen.getByText(fr.quiz.cheer(50))).toBeInTheDocument();
+    expect(screen.getByText(plain(fr.quiz.cheer(50)))).toBeInTheDocument();
     expect(screen.getByRole('link', { name: fr.quiz.again })).toHaveAttribute('href', '/quiz');
   });
 
@@ -163,7 +164,7 @@ describe('QuizSessionPage', () => {
     await startSession({ targets: ['en'], types: ['verb'] });
     await userEvent.keyboard('{ArrowRight}');
     expect(screen.getByRole('img', { name: fr.quiz.scoreLabel(100) })).toBeInTheDocument();
-    expect(screen.getByText(fr.quiz.cheer(100))).toBeInTheDocument();
+    expect(screen.getByText(plain(fr.quiz.cheer(100)))).toBeInTheDocument();
   });
 
   it('keeps the arrow keys for the page inside text fields', async () => {

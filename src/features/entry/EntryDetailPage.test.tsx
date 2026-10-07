@@ -11,6 +11,7 @@ import {
   sourisContent,
   sVousPlaitContent,
 } from '../../test/fixtures.ts';
+import { plain } from '../../test/text.ts';
 import { renderWithEntries } from '../../test/renderWithEntries.tsx';
 
 const entries: Entry[] = [
@@ -34,7 +35,9 @@ describe('EntryDetailPage', () => {
     }
     expect(container.querySelectorAll('.lang-badge')).toHaveLength(4);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/^arbre$/);
-    expect(card('Français')).toHaveTextContent(fr.entry.kind('Français', fr.entryTypes.word));
+    expect(card('Français')).toHaveTextContent(
+      plain(fr.entry.kind('Français', fr.entryTypes.word)),
+    );
   });
 
   it('shows the word of each language', () => {

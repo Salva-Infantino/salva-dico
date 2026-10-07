@@ -57,7 +57,9 @@ export function EntryHero({
               to={`/entries/${entry.id}/conjugation/${lang}/${String(i)}`}
               aria-label={fr.conjugation.open(word)}
             >
-              {words.length > 1 ? `${fr.conjugation.title} · ${word}` : fr.conjugation.title}
+              {words.length > 1
+                ? `${fr.conjugation.title}${fr.common.separator}${word}`
+                : fr.conjugation.title}
             </Link>
           ))}
         </p>

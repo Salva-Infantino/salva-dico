@@ -5,6 +5,7 @@ import { formatResetTime, nextQuotaReset } from '../../domain/quotaReset.ts';
 import type { Entry } from '../../domain/schemas.ts';
 import { fr } from '../../i18n/fr.ts';
 import { allerContent, garconContent, makeEntry } from '../../test/fixtures.ts';
+import { plain } from '../../test/text.ts';
 import { renderWithEntries } from '../../test/renderWithEntries.tsx';
 
 const entries: Entry[] = [makeEntry(garconContent, { id: 'garcon' })];
@@ -83,7 +84,7 @@ describe('AI mode', () => {
       quota: { scope: 'minute', retryAfterSeconds: 36 },
     });
     await userEvent.click(translateButton());
-    expect(await screen.findByRole('alert')).toHaveTextContent(fr.ai.quota.minute(36));
+    expect(await screen.findByRole('alert')).toHaveTextContent(plain(fr.ai.quota.minute(36)));
   });
 
   it('says when the daily quota resets', async () => {
@@ -94,7 +95,7 @@ describe('AI mode', () => {
     });
     await userEvent.click(translateButton());
     const time = formatResetTime(nextQuotaReset(new Date()));
-    expect(await screen.findByRole('alert')).toHaveTextContent(fr.ai.quota.day(time));
+    expect(await screen.findByRole('alert')).toHaveTextContent(plain(fr.ai.quota.day(time)));
     expect(wordField()).toHaveValue('chat');
   });
 

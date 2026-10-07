@@ -64,7 +64,9 @@ export function ConjugationPage() {
         </h1>
         {'auxiliary' in verb.conjugation && (
           <p className="hero-meta">
-            {fr.conjugation.auxiliary} : <strong lang={lang}>{verb.conjugation.auxiliary}</strong>
+            {fr.conjugation.auxiliary}
+            {fr.common.colon}
+            <strong lang={lang}>{verb.conjugation.auxiliary}</strong>
           </p>
         )}
       </header>

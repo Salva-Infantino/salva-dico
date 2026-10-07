@@ -1,14 +1,21 @@
+import { withFrenchSpacing } from './typography.ts';
+
 /**
  * All user-facing strings. The UI is French only, but keeping strings in one
  * module makes them easy to review and keeps components free of hardcoded text.
+ * Written with plain spaces: `withFrenchSpacing` makes the right ones non-breaking.
  */
-export const fr = {
+export const fr = withFrenchSpacing({
   app: {
     name: 'Salva Dico',
   },
   common: {
     loading: 'Chargement…',
     back: 'Retour',
+    /** Between related words ("went · gone"): the dot stays with the word before it. */
+    separator: ' · ',
+    /** Before a value: "Auxiliaire : essere". */
+    colon: ' : ',
   },
   langs: {
     fr: 'Français',
@@ -280,4 +287,4 @@ export const fr = {
     reload: 'Mettre à jour',
     offlineReady: "L'application est prête à fonctionner hors ligne.",
   },
-} as const;
+} as const);

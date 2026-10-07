@@ -7,7 +7,12 @@ export function TenseName({ lang, tense }: { lang: Lang; tense: TenseInfo }) {
   return (
     <>
       {tense.name}
-      {lang !== 'fr' && <span className="grammar"> · {fr.tenses[tense.french]}</span>}
+      {lang !== 'fr' && (
+        <span className="grammar">
+          {fr.common.separator}
+          {fr.tenses[tense.french]}
+        </span>
+      )}
     </>
   );
 }
