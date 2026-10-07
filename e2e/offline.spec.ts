@@ -62,7 +62,7 @@ test('works offline: reload, search, add, master, quiz, then syncs on reconnect'
     await signIn(otherPage);
     await otherPage.getByRole('searchbox', { name: 'Rechercher' }).fill(`${word}-es`);
     await expect(otherPage.getByText('1 résultat')).toBeVisible({ timeout: 15_000 });
-    await otherPage.getByRole('link', { name: new RegExp(word) }).click();
+    await otherPage.getByRole('link', { name: new RegExp(displayed(word)) }).click();
     await expect(otherPage.getByRole('switch', { name: 'Maîtrisé' })).toHaveAttribute(
       'aria-checked',
       'true',
