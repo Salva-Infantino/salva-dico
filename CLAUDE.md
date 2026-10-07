@@ -297,7 +297,9 @@ ES `yo, tú, él/ella, nosotros, vosotros, ellos/ellas`.
   language badges, app shell (tab bar / sidebar), dictionary (cards / table + preview), entry page, quiz card,
   derived dark theme. Step 2 **done**: editor, AI review, conjugation, quiz setup and score, settings,
   sign-in and error pages (shared `PageHeader`); the phone a11y E2E test also checks for horizontal overflow.
-  Step 3 (next): dark theme polish, README screenshots (`pnpm docs:screenshots` needs updating to the new UI).
+  Step 3 **done** (2026-10-07): dark theme polish (raised selected segment, top highlight on raised
+  surfaces, brighter error/warning tones, neutral disabled buttons), README screenshots regenerated.
+  Redesign complete.
 - Roadmap complete. Deployed on Netlify (`salva-dico.netlify.app`), sign-in checked in production
   (2026-10-06). CSP errors from `about:srcdoc` in the console come from Netlify's injected badge, not the app.
 
