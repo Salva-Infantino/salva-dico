@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
-/** Tried in order: the second one takes over when the first is overloaded. */
-export const DEFAULT_GEMINI_MODELS = 'gemini-3.8-flash,gemini-3.5-flash';
+/**
+ * Tried in order: the next one takes over when one is overloaded, too slow or out of quota.
+ * Several fallbacks, because an overloaded model often stays so for a while (and each
+ * model has its own free-tier quota).
+ */
+export const DEFAULT_GEMINI_MODELS =
+  'gemini-3.8-flash,gemini-3.7-flash,gemini-3.6-flash,gemini-3.5-flash';
 
 /** Server-only configuration (Netlify environment variables, never VITE_). */
 const serverEnvSchema = z.object({

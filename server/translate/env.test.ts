@@ -8,7 +8,12 @@ describe('parseServerEnv', () => {
   it('uses the default model and the client project id', () => {
     expect(parseServerEnv(env)).toEqual({
       geminiApiKey: 'key',
-      geminiModels: ['gemini-3.8-flash', 'gemini-3.5-flash'],
+      geminiModels: [
+        'gemini-3.8-flash',
+        'gemini-3.7-flash',
+        'gemini-3.6-flash',
+        'gemini-3.5-flash',
+      ],
       ownerUid: 'owner',
       projectId: 'salva-dico',
       authEmulator: false,
