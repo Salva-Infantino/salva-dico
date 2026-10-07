@@ -12,7 +12,7 @@ security model, the tests and the CI matter as much as the features.
 </p>
 <p>
   <img src="docs/screenshots/conjugation.png" alt="Spanish conjugation of levantarse in dark theme: one card per tense, with the French tense name" width="58%">
-  <img src="docs/screenshots/quiz-phone.png" alt="Quiz card on a phone: se lever, with the English and Italian answers turned face up and the Spanish one still hidden" width="19%">
+  <img src="docs/screenshots/quiz-phone.png" alt="Quiz card on a phone: aller, with the English and Italian answers turned face up and the Spanish one still hidden" width="19%">
   <img src="docs/screenshots/score-phone.png" alt="End of a quiz on a phone, dark theme: a 100 % score ring" width="19%">
 </p>
 
